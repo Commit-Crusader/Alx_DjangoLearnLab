@@ -41,7 +41,7 @@ def query_books_by_author():
 def query_books_in_library():
     """List all books in a library (ManyToMany relationship)"""
     
-    library_name = "Central Library"
+    library_name = "Light House"
     library = Library.objects.get(name=library_name)
     
     # Get all books in this library
@@ -58,7 +58,7 @@ def query_librarian_for_library():
     library = Library.objects.get(name=library_name)
     
     # Get librarian for this library
-    Librarian = Librarian.object.get(library =)
+    Librarian = Librarian.object.get(library = 1)
     
     print(f"\nLibrarian for {library_name}: {librarian.name}")
 
