@@ -72,6 +72,6 @@ if __name__ == "__main__":
     print("RUNNING SAMPLE QUERIES")
     print("="*50)
     
-    query_books_by_author()
+    #query_books_by_author()
     query_books_in_library()
     query_librarian_for_library()
