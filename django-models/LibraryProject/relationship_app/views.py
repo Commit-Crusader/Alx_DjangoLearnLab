@@ -64,7 +64,7 @@ def Member(user):
 @user_passes_test(Admin)
 def admin_view(request):
     """View accessible only by Admin users"""
-    return render(request, 'relationship_app/admin_view.html', {'user_role': 'Admin'})
+    return render(request, 'relationship_app/admin_view.html')
 
 # Librarian-only view
 @user_passes_test(is_librarian)
