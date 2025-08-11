@@ -33,7 +33,7 @@ def register_view(request):
         form = UserCreationForm()
     return render(request, 'relationship_app/register.html', {'form': form})
 
-def is_admin(user):
+def Admin(user):
     #Check if user has Admin Role
     #but first we need to check if the user is even logged in
 
@@ -44,7 +44,7 @@ def is_admin(user):
     except:
         return False
 
-def is_librarian(user):
+def Librarian(user):
     if not user.is_authenticated:
         return False
     try:
@@ -52,7 +52,7 @@ def is_librarian(user):
     except:
         return False
 
-def is_member(user):
+def Member(user):
     if not user.is_authenticated:
         return False
     try:
@@ -61,7 +61,7 @@ def is_member(user):
         return False
 
 # Admin-only view
-@user_passes_test(is_admin)
+@user_passes_test(Admin)
 def admin_view(request):
     """View accessible only by Admin users"""
     return render(request, 'relationship_app/admin_view.html', {'user_role': 'Admin'})
