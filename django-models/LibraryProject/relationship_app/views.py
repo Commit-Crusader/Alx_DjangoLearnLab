@@ -23,15 +23,15 @@ def has_role(user, role):
 
 def member_test(user):
     """Test if user has Member role"""
-    return has_role(user, "Member")
+    return has_role(user, 'Member')
 
 def librarian_test(user):
     """Test if user has Librarian role"""
-    return has_role(user, "Librarian")
+    return has_role(user, 'Librarian')
 
 def admin_test(user):
     """Test if user has Admin role"""
-    return has_role(user, "Admin")
+    return has_role(user, 'Admin')
 
 # Role-based views
 @user_passes_test(member_test)
