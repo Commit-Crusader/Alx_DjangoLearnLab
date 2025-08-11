@@ -60,44 +60,20 @@ def is_member(user):
     except:
         return False
 
-@login_required  # User must be logged in
-@user_passes_test(is_admin)  # User must pass the is_admin test
+# Admin-only view
+@user_passes_test(is_admin)
 def admin_view(request):
-    """
-    Admin-only view - accessible only to users with Admin role
-    """
-    context = {
-        'user': request.user,
-        'role': request.user.userprofile.role,
-        'page_title': 'Admin Dashboard',
-        'message': 'Welcome to the Admin Dashboard. You have full system access.'
-    }
-    return render(request, 'admin_view.html', context)
+    """View accessible only by Admin users"""
+    return render(request, 'admin_view.html', {'user_role': 'Admin'})
 
-@login_required  # User must be logged in
-@user_passes_test(is_librarian)  # User must pass the is_librarian test
+# Librarian-only view
+@user_passes_test(is_librarian)
 def librarian_view(request):
-    """
-    Librarian-only view - accessible only to users with Librarian role
-    """
-    context = {
-        'user': request.user,
-        'role': request.user.userprofile.role,
-        'page_title': 'Librarian Dashboard',
-        'message': 'Welcome to the Librarian Dashboard. You can manage books and members.'
-    }
-    return render(request, 'librarian_view.html', context)
+    """View accessible only by Librarian users"""
+    return render(request, 'librarian_view.html', {'user_role': 'Librarian'})
 
-@login_required  # User must be logged in  
-@user_passes_test(is_member)  # User must pass the is_member test
+# Member-only view
+@user_passes_test(is_member)
 def member_view(request):
-    """
-    Member-only view - accessible only to users with Member role
-    """
-    context = {
-        'user': request.user,
-        'role': request.user.userprofile.role,
-        'page_title': 'Member Dashboard', 
-        'message': 'Welcome to the Member Dashboard. You can browse and borrow books.'
-    }
-    return render(request, 'member_view.html', context)
+    """View accessible only by Member users"""
+    return render(request, 'member_view.html', {'user_role': 'Member'})
