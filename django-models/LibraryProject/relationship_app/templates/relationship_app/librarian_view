@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Librarian Dashboard</title>
+</head>
+<body>
+    <h1>Librarian Dashboard</h1>
+    <p>Welcome, {{ user.username }}!</p>
+    <p>Your role: {{ user_role }}</p>
+    
+    <div>
+        <h2>Librarian Features:</h2>
+        <ul>
+            <li>Manage books and inventory</li>
+            <li>Process book checkouts</li>
+            <li>Handle member requests</li>
+            <li>Generate library reports</li>
+        </ul>
+    </div>
+    
+    <a href="/">Back to Home</a>
+</body>
+</html>
