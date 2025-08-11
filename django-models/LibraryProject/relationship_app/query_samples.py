@@ -58,7 +58,7 @@ def query_librarian_for_library():
     library = Library.objects.get(name=library_name)
     
     # Get librarian for this library
-    Librarian.objects.get(library =)
+    librarian = Librarian.objects.get(library = library)
     
     print(f"\nLibrarian for {library_name}: {librarian.name}")
 
