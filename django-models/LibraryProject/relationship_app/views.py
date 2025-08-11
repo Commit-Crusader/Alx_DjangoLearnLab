@@ -7,6 +7,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
+from django.contrib.auth.decorators import login_required, user_passes_test
 # Create your views here.
 
 
@@ -32,4 +33,71 @@ def register_view(request):
         form = UserCreationForm()
     return render(request, 'relationship_app/register.html', {'form': form})
 
+def is_admin(user):
+    #Check if user has Admin Role
+    #but first we need to check if the user is even logged in
 
+    if not user.is_authenticated:
+        return False
+    try:
+        return user.profile.role == 'Admin'
+    except:
+        return False
+
+def is_librarian(user):
+    if not user.is_authenticated:
+        return False
+    try:
+        return user.profile.role == 'Librarian'
+    except:
+        return False
+
+def is_member(user):
+    if not user.is_authenticated:
+        return False
+    try:
+        return user.profile.role == 'Member'
+    except:
+        return False
+
+@login_required  # User must be logged in
+@user_passes_test(is_admin)  # User must pass the is_admin test
+def admin_view(request):
+    """
+    Admin-only view - accessible only to users with Admin role
+    """
+    context = {
+        'user': request.user,
+        'role': request.user.userprofile.role,
+        'page_title': 'Admin Dashboard',
+        'message': 'Welcome to the Admin Dashboard. You have full system access.'
+    }
+    return render(request, 'admin_view.html', context)
+
+@login_required  # User must be logged in
+@user_passes_test(is_librarian)  # User must pass the is_librarian test
+def librarian_view(request):
+    """
+    Librarian-only view - accessible only to users with Librarian role
+    """
+    context = {
+        'user': request.user,
+        'role': request.user.userprofile.role,
+        'page_title': 'Librarian Dashboard',
+        'message': 'Welcome to the Librarian Dashboard. You can manage books and members.'
+    }
+    return render(request, 'librarian_view.html', context)
+
+@login_required  # User must be logged in  
+@user_passes_test(is_member)  # User must pass the is_member test
+def member_view(request):
+    """
+    Member-only view - accessible only to users with Member role
+    """
+    context = {
+        'user': request.user,
+        'role': request.user.userprofile.role,
+        'page_title': 'Member Dashboard', 
+        'message': 'Welcome to the Member Dashboard. You can browse and borrow books.'
+    }
+    return render(request, 'member_view.html', context)
