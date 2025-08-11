@@ -1,0 +1,22 @@
+# Ignore Python bytecode
+__pycache__/
+*.py[cod]
+
+# Ignore virtual environments
+venv/
+env/
+myenv/
+
+# Ignore Django database
+db.sqlite3
+
+# Ignore OS junk
+.DS_Store
+
+# Ignore IDE files
+.vscode/
+.idea/
+
+# Ignore secrets (don’t store keys in version control!)
+*.env
+
