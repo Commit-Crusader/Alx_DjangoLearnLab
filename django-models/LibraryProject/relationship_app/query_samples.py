@@ -1,3 +1,4 @@
+from django.db import models
 from relationship_app.models import Author, Book, Library, Librarian
 
 def create_sample_data():
@@ -25,7 +26,7 @@ def create_sample_data():
     print("Sample data added successfully")
 
 
-def query_books_by_author():
+"""def query_books_by_author():
     """Query all books by a specific author (ForeignKey relationship)"""
     
     author_name = "J.K. Rowling"
@@ -37,7 +38,7 @@ def query_books_by_author():
     print(f"\nBooks by {author_name}:")
     for book in books:
         print(f"- {book.title}")
-
+"""
 def query_books_in_library():
     """List all books in a library (ManyToMany relationship)"""
     
