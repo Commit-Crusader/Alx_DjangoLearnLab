@@ -64,16 +64,16 @@ def is_member(user):
 @user_passes_test(is_admin)
 def admin_view(request):
     """View accessible only by Admin users"""
-    return render(request, 'admin_view.html', {'user_role': 'Admin'})
+    return render(request, 'relationship_app/admin_view.html', {'user_role': 'Admin'})
 
 # Librarian-only view
 @user_passes_test(is_librarian)
 def librarian_view(request):
     """View accessible only by Librarian users"""
-    return render(request, 'librarian_view.html', {'user_role': 'Librarian'})
+    return render(request, 'relationship_app/librarian_view.html', {'user_role': 'Librarian'})
 
 # Member-only view
 @user_passes_test(is_member)
 def member_view(request):
     """View accessible only by Member users"""
-    return render(request, 'member_view.html', {'user_role': 'Member'})
+    return render(request, 'relationship_app/member_view.html', {'user_role': 'Member'})
