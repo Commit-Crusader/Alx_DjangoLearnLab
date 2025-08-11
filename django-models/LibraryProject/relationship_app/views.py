@@ -12,39 +12,45 @@ from django.contrib.auth import login as auth_login
 # Create your views here.
 
 # Role checking functions
-def has_role(user, role):
-    """Check if user has specific role - optimized version"""
+def is_admin(user):
+    """Check if user has Admin role"""
     if not user.is_authenticated:
         return False
     try:
-        return user.userprofile.role == role
+        return user.userprofile.role == 'Admin'
     except UserProfile.DoesNotExist:
         return False
 
-def member_test(user):
-    """Test if user has Member role"""
-    return has_role(user, 'Member')
+def is_librarian(user):
+    """Check if user has Librarian role"""
+    if not user.is_authenticated:
+        return False
+    try:
+        return user.userprofile.role == 'Librarian'
+    except UserProfile.DoesNotExist:
+        return False
 
-def librarian_test(user):
-    """Test if user has Librarian role"""
-    return has_role(user, 'Librarian')
-
-def admin_test(user):
-    """Test if user has Admin role"""
-    return has_role(user, 'Admin')
+def is_member(user):
+    """Check if user has Member role"""
+    if not user.is_authenticated:
+        return False
+    try:
+        return user.userprofile.role == 'Member'
+    except UserProfile.DoesNotExist:
+        return False
 
 # Role-based views
-@user_passes_test(member_test)
+@user_passes_test(is_member)
 def member_view(request):
     """View accessible only by Member users"""
     return render(request, 'relationship_app/member_view.html')
 
-@user_passes_test(librarian_test)
+@user_passes_test(is_librarian)
 def librarian_view(request):
     """View accessible only by Librarian users"""
     return render(request, 'relationship_app/librarian_view.html')
 
-@user_passes_test(admin_test)
+@user_passes_test(is_admin)
 def admin_view(request):
     """View accessible only by Admin users"""
     return render(request, 'relationship_app/admin_view.html')
