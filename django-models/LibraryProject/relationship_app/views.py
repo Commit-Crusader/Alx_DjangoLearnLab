@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Library, Author, Librarian, Book, UserProfile
 from django.views.generic import DetailView
 from django.views.generic.detail import DetailView
@@ -21,13 +21,24 @@ class LibraryDetailView(DetailView):
   template_name = 'relationship_app/library_detail.html'
 
 
-class RegisterView(CreateView):
+def register_view(request):
     """
-    User registration view using Django's built-in UserCreationForm
+    Function-based registration view using Django's UserCreationForm
     """
-    form_class = UserCreationForm
-    template_name = 'relationship_app/register.html'
-    success_url = reverse_lazy('login')
-
+    if request.user.is_authenticated:
+            return redirect('login')
+    
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            messages.success(request, f'Account created for {username}! You can now log in.')
+            return redirect('login')
+    else:
+        # Create empty form for GET request
+        form = UserCreationForm()
+    
+    return render(request, 'relationship_app/register.html', {'form': form})
 
 
