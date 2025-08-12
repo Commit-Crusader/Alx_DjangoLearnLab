@@ -101,7 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Custom User Model Configuration
-AUTH_USER_MODEL = 'your_app_name.CustomUser'
+AUTH_USER_MODEL = 'bookshelf.CustomUser'
 
 # If you're using images, make sure you have these settings as well:
 import os

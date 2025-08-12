@@ -68,18 +68,12 @@ class UserProfile(models.Model):
     # Django Signals for automatic UserProfile creation
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """
-    Signal receiver that creates a UserProfile whenever a new User is created
-    """
     if created:
         UserProfile.objects.create(user=instance)
         print(f"UserProfile created for user: {instance.username}")
 
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    """
-    Signal receiver that saves the UserProfile whenever the User is saved
-    """
     # Check if the user has a profile, create one if it doesn't exist
     if not hasattr(instance, 'userprofile'):
         UserProfile.objects.create(user=instance)
