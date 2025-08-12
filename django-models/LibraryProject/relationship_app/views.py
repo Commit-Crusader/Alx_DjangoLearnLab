@@ -1,5 +1,5 @@
 
-from django.shortcuts import render, redirect, HttpResponse
+from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from .models import Author, Book, Librarian, Library, UserProfile
 from django.template import loader
 from django.views.generic import TemplateView, DetailView, CreateView, UpdateView
@@ -17,7 +17,7 @@ def is_admin(user):
     if not user.is_authenticated:
         return False
     try:
-        return user.userprofile.role == 'Admin'
+        return user.userprofile.role =='Admin'
     except UserProfile.DoesNotExist:
         return False
 
@@ -26,7 +26,7 @@ def is_librarian(user):
     if not user.is_authenticated:
         return False
     try:
-        return user.userprofile.role == 'Librarian'
+        return user.userprofile.role =='Librarian'
     except UserProfile.DoesNotExist:
         return False
 
@@ -35,7 +35,7 @@ def is_member(user):
     if not user.is_authenticated:
         return False
     try:
-        return user.userprofile.role == 'Member'
+        return user.userprofile.role =='Member'
     except UserProfile.DoesNotExist:
         return False
 
@@ -87,4 +87,52 @@ class register(CreateView):
 class ProfileView(TemplateView):
     """User profile view"""
     template_name = 'relationship_app/profile.html'
-    
+
+# View to add a new book - requires 'can_add_book' permission
+@permission_required('relationship_app.can_add_book', raise_exception=True)
+def add_book(request):
+    """View to add a new book"""
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author_id = request.POST.get('author')
+
+        if title and author_id:
+            author = get_object_or_404(Author, id=author_id)
+            Book.objects.create(title=title, author=author)
+            return redirect('list_books')
+
+    authors = Author.objects.all()
+    return render(request, 'relationship_app/add_book.html', {'authors': authors})
+
+# View to edit an existing book - requires 'can_change_book' permission
+@permission_required('relationship_app.can_change_book', raise_exception=True)
+def edit_book(request, pk):
+    """View to edit an existing book"""
+    book = get_object_or_404(Book, pk=pk)
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author_id = request.POST.get('author')
+
+        if title and author_id:
+            author = get_object_or_404(Author, id=author_id)
+            book.title = title
+            book.author = author
+            book.save()
+            return redirect('list_books')
+
+    authors = Author.objects.all()
+    context = {'book': book, 'authors': authors}
+    return render(request, 'relationship_app/edit_book.html', context)
+
+# View to delete a book - requires 'can_delete_book' permission
+@permission_required('relationship_app.can_delete_book', raise_exception=True)
+def delete_book(request, pk):
+    """View to delete a book"""
+    book = get_object_or_404(Book, pk=pk)
+
+    if request.method == 'POST':
+        book.delete()
+        return redirect('list_books')
+
+    return render(request, 'relationship_app/delete_book.html', {'book': book})
