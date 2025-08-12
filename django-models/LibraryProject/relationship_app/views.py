@@ -1,11 +1,11 @@
-
 from django.shortcuts import render, redirect, HttpResponse, get_object_or_404
 from .models import Author, Book, Librarian, Library, UserProfile
 from django.template import loader
 from django.views.generic import TemplateView, DetailView, CreateView, UpdateView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import permission_required
 from django.contrib.auth.models import User
 from django.utils.decorators import method_decorator
 from django.contrib.auth import login as auth_login
