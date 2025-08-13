@@ -1,11 +1,30 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.utils.translation import gettext_lazy as _
 
 
 class Book(models.Model):
     title = models.CharField(max_length = 200)
     author = models.CharField(max_length = 100)
     publication_year = models.IntegerField()
+    isbn = models.CharField(max_length=13, unique=True)
+    created_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='books_created'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        permissions = [
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
+        ]
+        verbose_name = _('Book')
+        verbose_name_plural = _('Books')
 
     def __str__(self):
         return self.title
@@ -42,14 +61,12 @@ class CustomUser(AbstractUser):
     # Additional fields
     date_of_birth = models.DateField(
         null=True, 
-        blank=True, 
-        help_text=_("User's date of birth")
+        blank=True,
     )
     profile_photo = models.ImageField(
         upload_to='profile_photos/', 
         null=True, 
         blank=True,
-        help_text=_("User's profile photo")
     )
     
     objects = CustomUserManager()

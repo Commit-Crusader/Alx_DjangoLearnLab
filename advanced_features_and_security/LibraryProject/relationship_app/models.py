@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 # Create your models here.
@@ -49,7 +49,7 @@ class UserProfile(models.Model):
         ]
 
     user = models.OneToOneField(
-            User, 
+            settings.AUTH_USER_MODEL, 
             on_delete = models.CASCADE, 
             help_text="Link to Django's built-in User Model"
         )
@@ -75,7 +75,7 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
         print(f"UserProfile created for user: {instance.username}")
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def save_user_profile(sender, instance, **kwargs):
     """
     Signal receiver that saves the UserProfile whenever the User is saved
