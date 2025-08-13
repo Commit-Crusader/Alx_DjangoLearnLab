@@ -10,4 +10,4 @@ class BookAdmin(admin.ModelAdmin):
 
 
 
-admin.site.register(Book)
+admin.site.register(CustomUser, CustomUserAdmin)
