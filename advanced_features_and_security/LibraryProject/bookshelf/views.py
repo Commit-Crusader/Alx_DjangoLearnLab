@@ -1,3 +1,73 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.db.models import Q
+from django.utils.html import escape
+from django.views.decorators.csrf import csrf_protect
+from .models import Book
+from .forms import BookForm, BookSearchForm
 
-# Create your views here.
+
+# Permission-based views
+@login_required
+@permission_required('bookshelf.can_view', raise_exception=True)
+def book_list(request):
+    """Display list of books with permission check."""
+    books = Book.objects.all()
+    return render(request, 'bookshelf/book_list.html', {'books': books})
+
+
+@login_required
+@permission_required('bookshelf.can_create', raise_exception=True)
+@csrf_protect
+def book_create(request):
+    """Create new book with permission check."""
+    if request.method == 'POST':
+        form = BookForm(request.POST)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.created_by = request.user
+            book.save()
+            messages.success(request, 'Book created successfully!')
+            return redirect('book_list')
+    else:
+        form = BookForm()
+    
+    return render(request, 'bookshelf/book_form.html', {'form': form})
+
+
+@login_required
+@permission_required('bookshelf.can_edit', raise_exception=True)
+@csrf_protect
+def book_edit(request, pk):
+    """Edit existing book with permission check."""
+    book = get_object_or_404(Book, pk=pk)
+    
+    if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Book updated successfully!')
+            return redirect('book_list')
+    else:
+        form = BookForm(instance=book)
+    
+    return render(request, 'bookshelf/book_form.html', {
+        'form': form, 
+        'book': book
+    })
+
+
+@login_required
+@permission_required('bookshelf.can_delete', raise_exception=True)
+def book_delete(request, pk):
+    """Delete book with permission check."""
+    book = get_object_or_404(Book, pk=pk)
+    
+    if request.method == 'POST':
+        book.delete()
+        messages.success(request, 'Book deleted successfully!')
+        return redirect('book_list')
+    
+    return render(request, 'bookshelf/book_confirm_delete.html', {'book': book})
