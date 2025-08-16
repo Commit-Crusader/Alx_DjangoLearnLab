@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-g0ig07^up3^lk+jic)vq^4gg%o6qzq+1ba!=p*)9%-m%z5@&re'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',  # Content Security Policy Middleware
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -141,7 +142,9 @@ LOGOUT_REDIRECT_URL = '/login/'      # Where to go after logout
 # Tell Django where your login page is
 LOGIN_URL = '/login/'
 
-SECURE_SSL_REDIRECT = not DEBUG  # Only in production
+# HTTPS/SSL Settings
+SECURE_SSL_REDIRECT = not DEBUG  # Redirect all HTTP to HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # HTTP Strict Transport Security (HSTS)
 # Instructs browsers to only access the site via HTTPS for specified time
@@ -150,8 +153,8 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG  # Include all subdomains
 SECURE_HSTS_PRELOAD = not DEBUG  # Allow HSTS preloading
 
 
-SESSION_COOKIE_SECURE = not DEBUG  # Session cookies over HTTPS only
-CSRF_COOKIE_SECURE = not DEBUG  # CSRF cookies over HTTPS only
+SESSION_COOKIE_SECURE = True  # Session cookies over HTTPS only
+CSRF_COOKIE_SECURE = True  # CSRF cookies over HTTPS only
 SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
 CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
 
@@ -202,7 +205,7 @@ LOGGING = {
     },
 }
 
-
+# Browser Security Headers
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True

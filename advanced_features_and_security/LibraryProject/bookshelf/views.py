@@ -29,7 +29,7 @@ def book_create(request):
             book = form.save(commit=False)
             book.created_by = request.user
             book.save()
-            messages.success(request, 'Book created successfully!')
+            #messages.success(request, 'Book created successfully!')
             return redirect('book_list')
     else:
         form = BookForm()
@@ -71,3 +71,16 @@ def book_delete(request, pk):
         return redirect('book_list')
     
     return render(request, 'bookshelf/book_confirm_delete.html', {'book': book})
+
+@login_required
+def book_search(request):
+    """Secure search implementation"""
+    query = request.GET.get('q', '')
+    
+    # Use QuerySet methods instead of raw SQL
+    books = Book.objects.filter(title__icontains=query) if query else Book.objects.none()
+    
+    return render(request, 'bookshelf/book_list.html', {
+        'books': books,
+        'query': escape(query)  # Escape user input for display
+    })
