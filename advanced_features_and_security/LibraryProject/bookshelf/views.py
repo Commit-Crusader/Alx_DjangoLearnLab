@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.utils.html import escape
 from django.views.decorators.csrf import csrf_protect
 from .models import Book
-from .forms import BookForm, BookSearchForm
+from .forms import BookForm, BookSearchForm, ExampleForm
 
 
 # Permission-based views
@@ -84,3 +84,19 @@ def book_search(request):
         'books': books,
         'query': escape(query)  # Escape user input for display
     })
+    
+    
+@csrf_protect
+def example_form_view(request):
+    """Handle the example form with security measures"""
+    if request.method == 'POST':
+        form = ExampleForm(request.POST)
+        if form.is_valid():
+            # Process the cleaned data
+            cleaned_data = form.cleaned_data
+            messages.success(request, 'Form submitted successfully!')
+            return redirect('book_list')
+    else:
+        form = ExampleForm()
+    
+    return render(request, 'bookshelf/form_example.html', {'form': form})
