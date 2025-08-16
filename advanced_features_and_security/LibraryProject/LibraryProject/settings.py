@@ -60,6 +60,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -112,6 +113,14 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 #Custom User Model Configuration
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
 
@@ -131,3 +140,64 @@ LOGIN_REDIRECT_URL = '/list_books/'  # Where to go after successful login
 LOGOUT_REDIRECT_URL = '/login/'      # Where to go after logout
 # Tell Django where your login page is
 LOGIN_URL = '/login/'
+
+SECURE_SSL_REDIRECT = not DEBUG  # Only in production
+
+# HTTP Strict Transport Security (HSTS)
+# Instructs browsers to only access the site via HTTPS for specified time
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG  # Include all subdomains
+SECURE_HSTS_PRELOAD = not DEBUG  # Allow HSTS preloading
+
+
+SESSION_COOKIE_SECURE = not DEBUG  # Session cookies over HTTPS only
+CSRF_COOKIE_SECURE = not DEBUG  # CSRF cookies over HTTPS only
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
+
+
+# Basic CSP configuration to prevent XSS attacks
+CSP_DEFAULT_SRC = ["'self'"]  # Only allow content from same origin
+CSP_SCRIPT_SRC = ["'self'", "'unsafe-inline'"]  # Allow inline scripts (use cautiously)
+CSP_STYLE_SRC = ["'self'", "'unsafe-inline'"]  # Allow inline styles
+CSP_IMG_SRC = ["'self'", "data:", "https:"]  # Allow images from same origin and HTTPS
+CSP_FONT_SRC = ["'self'", "https:"]  # Allow fonts from same origin and HTTPS
+CSP_CONNECT_SRC = ["'self'"]  # Allow AJAX requests to same origin only
+CSP_FRAME_ANCESTORS = ["'none'"]  # Prevent framing (redundant with X-Frame-Options)
+
+
+# CSRF Protection Settings
+CSRF_COOKIE_AGE = 3600  # 1 hour CSRF cookie timeout
+CSRF_USE_SESSIONS = False  # Use cookies for CSRF tokens (more secure than sessions)
+
+# Logging Configuration for Security Monitoring
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'security.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django.security': {
+            'handlers': ['file', 'console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+    },
+}
