@@ -6,8 +6,8 @@ from django.db.models import Q
 from django.utils.html import escape
 from django.views.decorators.csrf import csrf_protect
 from .models import Book
-from .forms import BookForm, BookSearchForm, ExampleForm
-
+from .forms import BookForm, BookSearchForm
+from .forms import ExampleForm  # Make sure this is a separate line
 
 # Permission-based views
 @login_required
