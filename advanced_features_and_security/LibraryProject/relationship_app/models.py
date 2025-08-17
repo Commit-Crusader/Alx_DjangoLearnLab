@@ -2,7 +2,10 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 # Create your models here.
+
+User = get_user_model()
 
 class Author(models.Model):
     name = models.CharField(max_length = 100)
@@ -66,7 +69,7 @@ class UserProfile(models.Model):
 
 
     # Django Signals for automatic UserProfile creation
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_profile(sender, instance, created, **kwargs):
     """
     Signal receiver that creates a UserProfile whenever a new User is created
