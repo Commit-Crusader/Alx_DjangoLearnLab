@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
 from .filters import BookFilter
+from django_filters import rest_framework
 
 class BookListView(generics.ListAPIView):
     """
