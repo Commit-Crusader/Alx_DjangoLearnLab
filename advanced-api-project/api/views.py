@@ -4,7 +4,7 @@ from .models import Book, Author
 from .serializers import BookSerializer
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework import filters
 from .filters import BookFilter
 from django_filters import rest_framework
 
@@ -22,7 +22,7 @@ class BookListView(generics.ListAPIView):
     permission_classes = [AllowAny]  # Allow any user to access this view
     
     # Filter backend for advanced filtering
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     
     # Filterset class for Book model
     filterset_class = BookFilter
