@@ -9,7 +9,10 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
+import django
+from django.utils.translation import gettext_lazy as _
+from django.contrib.messages import constants as messages
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,9 +26,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-g0ig07^up3^lk+jic)vq^4gg%o6qzq+1ba!=p*)9%-m%z5@&re'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = []
+#Security Settings - Development vs Production
+if DEBUG:
+    # Development settings
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+    SECURE_HSTS_SECONDS = 0
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = False
+    SECURE_HSTS_PRELOAD = False
+else:
+    # Production settings
+    ALLOWED_HOSTS = ['your-domain.com']  # Replace with your actual domain
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
 
 
 # Application definition
@@ -143,20 +164,20 @@ LOGOUT_REDIRECT_URL = '/login/'      # Where to go after logout
 LOGIN_URL = '/login/'
 
 # HTTPS/SSL Settings
-SECURE_SSL_REDIRECT = not DEBUG  # Redirect all HTTP to HTTPS
+#SECURE_SSL_REDIRECT = not DEBUG  # Redirect all HTTP to HTTPS
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # HTTP Strict Transport Security (HSTS)
 # Instructs browsers to only access the site via HTTPS for specified time
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year in production
-SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG  # Include all subdomains
-SECURE_HSTS_PRELOAD = not DEBUG  # Allow HSTS preloading
+#SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year in production
+#SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG  # Include all subdomains
+#SECURE_HSTS_PRELOAD = not DEBUG  # Allow HSTS preloading
 
 
-SESSION_COOKIE_SECURE = True  # Session cookies over HTTPS only
-CSRF_COOKIE_SECURE = True  # CSRF cookies over HTTPS only
-SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
-CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
+#SESSION_COOKIE_SECURE = True  # Session cookies over HTTPS only
+#CSRF_COOKIE_SECURE = True  # CSRF cookies over HTTPS only
+#SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookies
+#CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
 
 
 # Basic CSP configuration to prevent XSS attacks
