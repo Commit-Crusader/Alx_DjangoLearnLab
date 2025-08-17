@@ -12,7 +12,7 @@ class BookAPITestCase(APITestCase):
     Tests CRUD operations, permissions, and filtering
     """
     
-    def setUp(self):
+    def setUp(self)
         """
         Set up test data before each test method
         This runs before EVERY test method
