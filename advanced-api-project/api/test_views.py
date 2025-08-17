@@ -70,7 +70,7 @@ class BookAPITestCase(APITestCase):
     def test_create_book_authenticated(self):
         """Test creating a book with authentication"""
         # Login the user
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         
         url = reverse('book-create')
         data = {
@@ -105,7 +105,7 @@ class BookAPITestCase(APITestCase):
     
     def test_update_book_authenticated(self):
         """Test updating a book with authentication"""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         
         url = reverse('book-update')
         data = {
@@ -136,7 +136,7 @@ class BookAPITestCase(APITestCase):
     
     def test_delete_book_authenticated(self):
         """Test deleting a book with authentication"""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         
         url = reverse('book-delete')
         data = {'id': self.book1.id}
@@ -188,7 +188,7 @@ class BookAPITestCase(APITestCase):
     
     def test_create_book_invalid_data(self):
         """Test creating a book with invalid data"""
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         
         url = reverse('book-create')
         # Missing required fields
