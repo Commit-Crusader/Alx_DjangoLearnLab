@@ -1,0 +1,35 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+<div class="post-detail">
+    <article class="post-full">
+        <div class="post-header">
+            <div class="post-meta-full">
+                <img class="post-author-img-large" src="https://via.placeholder.com/60" alt="Author">
+                <div class="post-info-full">
+                    <h6>By {{ object.author.username }}</h6>
+                    <small class="text-muted">{{ object.created_at|date:"F d, Y \a\t g:i A" }}</small>
+                </div>
+            </div>
+            
+            {% if object.author == user %}
+                <div class="post-actions">
+                    <a href="{% url 'post-update' object.id %}" class="btn btn-secondary btn-sm">Edit</a>
+                    <a href="{% url 'post-delete' object.id %}" class="btn btn-danger btn-sm">Delete</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="post-content-full">
+            <h1>{{ object.title }}</h1>
+            <div class="post-text">
+                {{ object.content|linebreaks }}
+            </div>
+        </div>
+    </article>
+    
+    <div class="post-navigation">
+        <a href="{% url 'blog-home' %}" class="btn btn-outline-secondary">← Back to All Posts</a>
+    </div>
+</div>
+{% endblock content %}

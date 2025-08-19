@@ -10,11 +10,12 @@
 <body>
     <nav class="navbar">
     <div class="nav-brand">
-        <a href="/">My Blog</a>
+        <a href="{% url 'blog-home' %}">My Blog</a>
     </div>
     <div class="nav-links">
         {% if user.is_authenticated %}
             <span>Hello, {{ user.username }}!</span>
+            <a href="{% url 'post-create' %}">New Post</a>
             <a href="{% url 'profile' %}">Profile</a>
             <form method="post" action="{% url 'logout' %}" style="display: inline;">
                 {% csrf_token %}

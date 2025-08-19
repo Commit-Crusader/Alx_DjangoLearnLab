@@ -124,6 +124,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication settings
 # Redirects after login/logout
-LOGIN_REDIRECT_URL = 'profile'  # Where to go after login
-LOGOUT_REDIRECT_URL = 'post_list'  # Where to go after logout
+LOGIN_REDIRECT_URL = 'blog-home'  # Where to go after login
+LOGOUT_REDIRECT_URL = 'blog-home'  # Where to go after logout
 LOGIN_URL = 'login'  # Where to redirect if login required
