@@ -9,6 +9,8 @@ from .views import (
     PostDeleteView
 )
 
+app_name = 'blog'
+
 urlpatterns = [
     # Blog post URLs
     path('', PostListView.as_view(), name='blog-home'),
@@ -22,4 +24,12 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(http_method_names=['get', 'post']), name='logout'),
     path('register/', views.register, name='register'),
     path('profile/', views.profile, name='profile'),
+    
+     # Comment-related URLs
+    path('post/<int:post_id>/comments/new/', views.add_comment, name='add_comment'),
+    path('post/<int:post_id>/comments/quick/', views.quick_add_comment, name='quick_add_comment'),
+    path('comment/<int:pk>/edit/', views.CommentUpdateView.as_view(), name='edit_comment'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete_comment'),
+    path('comments/', views.CommentListView.as_view(), name='comment_list'),
+
 ]

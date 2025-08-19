@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from .models import Post
+from .models import Comment
+from django.core.exceptions import ValidationError
 
 class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -49,3 +51,52 @@ class PostForm(forms.ModelForm):
         # Add custom styling to form fields
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
+            
+class CommentForm(forms.ModelForm):
+    """Form for creating and updating comments"""
+    
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Share your thoughts...',
+                'required': True,
+            })
+        }
+        labels = {
+            'content': 'Your Comment'
+        }
+        help_texts = {
+            'content': 'Maximum 1000 characters. Be respectful and constructive.'
+        }
+    
+    def clean_content(self):
+        """Custom validation for comment content"""
+        content = self.cleaned_data.get('content')
+        
+        if not content or not content.strip():
+            raise ValidationError("Comment cannot be empty.")
+        
+        if len(content.strip()) < 5:
+            raise ValidationError("Comment must be at least 5 characters long.")
+        
+        # Check for inappropriate content (basic example)
+        inappropriate_words = ['spam', 'hate', 'abuse']  # Extend as needed
+        content_lower = content.lower()
+        for word in inappropriate_words:
+            if word in content_lower:
+                raise ValidationError(f"Please avoid using inappropriate language.")
+        
+        return content.strip()
+    
+    def save(self, commit=True):
+        """Override save to handle additional processing if needed"""
+        comment = super().save(commit=False)
+        
+        if commit:
+            comment.save()
+        
+        return comment

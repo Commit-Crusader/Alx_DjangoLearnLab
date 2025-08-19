@@ -1,28 +1,39 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import CustomUserCreationForm, UserUpdateForm, PostForm
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.urls import reverse_lazy
-from .models import Post
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.decorators.http import require_POST
+from django.urls import reverse_lazy, reverse
+from django.http import JsonResponse
+
+from .models import Post, Comment
+from .forms import CustomUserCreationForm, UserUpdateForm, PostForm, CommentForm
+
+
+# ---------------------------
+# User Authentication & Profile
+# ---------------------------
 
 def register(request):
+    """User registration with auto-login"""
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data.get('username')
             messages.success(request, f'Account created for {username}! You can now log in.')
-            login(request, user)  # Automatically log in the user
+            login(request, user)
             return redirect('profile')
     else:
         form = CustomUserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
+
 @login_required
 def profile(request):
+    """User profile update"""
     if request.method == 'POST':
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
@@ -31,73 +42,213 @@ def profile(request):
             return redirect('profile')
     else:
         form = UserUpdateForm(instance=request.user)
-    
-    context = {
+
+    return render(request, 'registration/profile.html', {
         'form': form,
         'user': request.user
-    }
-    return render(request, 'registration/profile.html', context)
+    })
 
-def post_list(request):
-    from .models import Post
-    posts = Post.objects.all().order_by('-published_date')
-    return render(request, 'blog/post_list.html', {'posts': posts})
 
-# Blog Post CRUD Views
+# ---------------------------
+# Blog Post Views
+# ---------------------------
+
 class PostListView(ListView):
+    """List all blog posts (paginated)"""
     model = Post
-    template_name = 'blog/home.html'  # <app>/<model>_<viewtype>.html
+    template_name = 'blog/home.html'
     context_object_name = 'posts'
-    ordering = ['-published_date']  # Show newest posts first
-    paginate_by = 5  # Show 5 posts per page
+    ordering = ['-published_date']
+    paginate_by = 5
+
 
 class PostDetailView(DetailView):
+    """Display single post with comments"""
     model = Post
     template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        post = self.get_object()
+
+        # Comments & form
+        context['comments'] = Comment.objects.filter(post=post).select_related('author')
+        context['comment_count'] = context['comments'].count()
+        if self.request.user.is_authenticated:
+            context['comment_form'] = CommentForm()
+
+        return context
+
 
 class PostCreateView(LoginRequiredMixin, CreateView):
+    """Create a new blog post"""
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
-    
+
     def form_valid(self, form):
         form.instance.author = self.request.user
         messages.success(self.request, 'Your post has been created successfully!')
         return super().form_valid(form)
-    
+
     def get_success_url(self):
         return reverse_lazy('post-detail', kwargs={'pk': self.object.pk})
 
+
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing post (only by author)"""
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
-    
+
     def form_valid(self, form):
         form.instance.author = self.request.user
         messages.success(self.request, 'Your post has been updated successfully!')
         return super().form_valid(form)
-    
+
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
-    
+        return self.request.user == self.get_object().author
+
     def get_success_url(self):
         return reverse_lazy('post-detail', kwargs={'pk': self.object.pk})
 
+
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a blog post (only by author)"""
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('blog-home')
-    
+
     def test_func(self):
-        post = self.get_object()
-        return self.request.user == post.author
-    
+        return self.request.user == self.get_object().author
+
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
 
-# Keep this for backward compatibility
-def post_list(request):
-    return redirect('blog-home')
+
+# ---------------------------
+# Comment Views
+# ---------------------------
+
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """Create a new comment on a post"""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post_id = self.kwargs['post_pk']
+        messages.success(self.request, 'Your comment has been added successfully!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['post_pk']})
+
+
+@login_required
+def add_comment(request, post_id):
+    """Function-based view for adding a comment"""
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            messages.success(request, 'Your comment has been added successfully!')
+            return redirect('post-detail', pk=post.pk)
+        messages.error(request, 'Please correct the errors below.')
+    else:
+        form = CommentForm()
+
+    return render(request, 'blog/add_comment.html', {'form': form, 'post': post})
+
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update a comment (only by author)"""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/edit_comment.html'
+
+    def test_func(self):
+        return self.request.user == self.get_object().author
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Your comment has been updated successfully!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a comment (only by author)"""
+    model = Comment
+    template_name = 'blog/delete_comment.html'
+
+    def test_func(self):
+        return self.request.user == self.get_object().author
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Your comment has been deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+
+
+@login_required
+@require_POST
+def quick_add_comment(request, post_id):
+    """AJAX endpoint for adding comments quickly"""
+    post = get_object_or_404(Post, id=post_id)
+    form = CommentForm(request.POST)
+
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.save()
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'comment_id': comment.id,
+                'author': comment.author.username,
+                'content': comment.content,
+                'created_at': comment.created_at.strftime('%B %d, %Y at %I:%M %p'),
+            })
+        return redirect('post-detail', pk=post.pk)
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': False, 'errors': form.errors})
+
+    messages.error(request, 'Please correct the errors in your comment.')
+    return redirect('post-detail', pk=post.pk)
+
+
+class CommentListView(ListView):
+    """List all comments (with optional filters)"""
+    model = Comment
+    template_name = 'blog/comment_list.html'
+    context_object_name = 'comments'
+    paginate_by = 20
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        post_id = self.request.GET.get('post_id')
+        if post_id:
+            queryset = queryset.filter(post_id=post_id)
+
+        user_id = self.request.GET.get('user_id')
+        if user_id:
+            queryset = queryset.filter(author_id=user_id)
+
+        return queryset.select_related('post', 'author')

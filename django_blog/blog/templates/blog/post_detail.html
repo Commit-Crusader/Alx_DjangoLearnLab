@@ -1,35 +1,239 @@
+<!-- blog/templates/blog/post_detail.html -->
 {% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.comment-section {
+    margin-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 2rem;
+}
+
+.comment {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.comment-author {
+    font-weight: bold;
+    color: #495057;
+}
+
+.comment-content {
+    line-height: 1.6;
+    color: #212529;
+}
+
+.comment-actions {
+    margin-top: 0.5rem;
+}
+
+.comment-actions .btn {
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.comment-form {
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.no-comments {
+    text-align: center;
+    color: #6c757d;
+    font-style: italic;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="post-detail">
-    <article class="post-full">
-        <div class="post-header">
-            <div class="post-meta-full">
-                <img class="post-author-img-large" src="https://via.placeholder.com/60" alt="Author">
-                <div class="post-info-full">
-                    <h6>By {{ object.author.username }}</h6>
-                    <small class="text-muted">{{ object.published_date|date:"F d, Y \a\t g:i A" }}</small>
-                </div>
+<div class="container mt-4">
+    <!-- Post Content -->
+    <article class="mb-5">
+        <header class="mb-4">
+            <h1 class="display-4">{{ post.title }}</h1>
+            <div class="text-muted mb-3">
+                By <strong>{{ post.author.username }}</strong> 
+                on {{ post.created_at|date:"F d, Y" }}
+                {% if post.updated_at != post.created_at %}
+                    (Updated: {{ post.updated_at|date:"F d, Y" }})
+                {% endif %}
             </div>
-            
-            {% if object.author == user %}
-                <div class="post-actions">
-                    <a href="{% url 'post-update' object.id %}" class="btn btn-secondary btn-sm">Edit</a>
-                    <a href="{% url 'post-delete' object.id %}" class="btn btn-danger btn-sm">Delete</a>
+        </header>
+        
+        <div class="post-content">
+            {{ post.content|linebreaks }}
+        </div>
+    </article>
+
+    <!-- Comments Section -->
+    <section class="comment-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3>Comments ({{ comment_count }})</h3>
+            {% if user.is_authenticated %}
+                <a href="#comment-form" class="btn btn-primary btn-sm">Add Comment</a>
+            {% endif %}
+        </div>
+
+        <!-- Comment Form (for authenticated users) -->
+        {% if user.is_authenticated %}
+        <div class="comment-form" id="comment-form">
+            <h5>Leave a Comment</h5>
+            <form method="post" action="{% url 'blog:quick_add_comment' post.id %}" id="quick-comment-form">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ comment_form.content.label_tag }}
+                    {{ comment_form.content }}
+                    {% if comment_form.content.help_text %}
+                        <div class="form-text">{{ comment_form.content.help_text }}</div>
+                    {% endif %}
+                    {% if comment_form.content.errors %}
+                        <div class="text-danger">
+                            {% for error in comment_form.content.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary">Post Comment</button>
+                <a href="{% url 'blog:add_comment' post.id %}" class="btn btn-outline-secondary">Full Form</a>
+            </form>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            <a href="{% url 'login' %}">Log in</a> to leave a comment.
+        </div>
+        {% endif %}
+
+        <!-- Comments List -->
+        <div class="comments-list" id="comments-list">
+            {% if comments %}
+                {% for comment in comments %}
+                <div class="comment" id="comment-{{ comment.id }}">
+                    <div class="comment-header">
+                        <div>
+                            <span class="comment-author">{{ comment.author.username }}</span>
+                            <span class="comment-date">{{ comment.created_at|date:"F d, Y \a\t g:i A" }}</span>
+                            {% if comment.updated_at != comment.created_at %}
+                                <span class="comment-edited">(edited {{ comment.updated_at|date:"F d, Y \a\t g:i A" }})</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="comment-content">
+                        {{ comment.content|linebreaks }}
+                    </div>
+                    
+                    {% if user == comment.author %}
+                    <div class="comment-actions">
+                        <a href="{% url 'blog:edit_comment' comment.id %}" class="btn btn-outline-primary btn-sm">Edit</a>
+                        <a href="{% url 'blog:delete_comment' comment.id %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="no-comments">
+                    <p>No comments yet. Be the first to share your thoughts!</p>
                 </div>
             {% endif %}
         </div>
-        
-        <div class="post-content-full">
-            <h1>{{ object.title }}</h1>
-            <div class="post-text">
-                {{ object.content|linebreaks }}
-            </div>
-        </div>
-    </article>
-    
-    <div class="post-navigation">
-        <a href="{% url 'blog-home' %}" class="btn btn-outline-secondary">← Back to All Posts</a>
-    </div>
+    </section>
 </div>
-{% endblock content %}
+
+<script>
+// AJAX for quick comment submission
+document.getElementById('quick-comment-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalText = submitButton.textContent;
+    
+    submitButton.disabled = true;
+    submitButton.textContent = 'Posting...';
+    
+    fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add new comment to the list
+            const commentsList = document.getElementById('comments-list');
+            const noComments = commentsList.querySelector('.no-comments');
+            
+            if (noComments) {
+                noComments.remove();
+            }
+            
+            const newComment = document.createElement('div');
+            newComment.className = 'comment';
+            newComment.id = 'comment-' + data.comment_id;
+            newComment.innerHTML = `
+                <div class="comment-header">
+                    <div>
+                        <span class="comment-author">${data.author}</span>
+                        <span class="comment-date">${data.created_at}</span>
+                    </div>
+                </div>
+                <div class="comment-content">
+                    ${data.content.replace(/\n/g, '<br>')}
+                </div>
+                <div class="comment-actions">
+                    <a href="/comment/${data.comment_id}/edit/" class="btn btn-outline-primary btn-sm">Edit</a>
+                    <a href="/comment/${data.comment_id}/delete/" class="btn btn-outline-danger btn-sm">Delete</a>
+                </div>
+            `;
+            
+            commentsList.appendChild(newComment);
+            
+            // Clear form and update counter
+            this.reset();
+            const counter = document.querySelector('h3');
+            const currentCount = parseInt(counter.textContent.match(/\d+/)[0]);
+            counter.textContent = `Comments (${currentCount + 1})`;
+            
+            // Scroll to new comment
+            newComment.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            alert('Error posting comment: ' + JSON.stringify(data.errors));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while posting your comment.');
+    })
+    .finally(() => {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    });
+});
+</script>
+{% endblock %}
