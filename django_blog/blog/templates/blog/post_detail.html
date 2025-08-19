@@ -101,7 +101,7 @@
         {% if user.is_authenticated %}
         <div class="comment-form" id="comment-form">
             <h5>Leave a Comment</h5>
-            <form method="post" action="{% url 'blog:quick_add_comment' post.id %}" id="quick-comment-form">
+            <form method="post" action="{% url 'blog:add_comment' post.id %}" id="comment-form">
                 {% csrf_token %}
                 <div class="mb-3">
                     {{ comment_form.content.label_tag }}
@@ -118,7 +118,6 @@
                     {% endif %}
                 </div>
                 <button type="submit" class="btn btn-primary">Post Comment</button>
-                <a href="{% url 'blog:add_comment' post.id %}" class="btn btn-outline-secondary">Full Form</a>
             </form>
         </div>
         {% else %}
@@ -164,8 +163,8 @@
 </div>
 
 <script>
-// AJAX for quick comment submission
-document.getElementById('quick-comment-form').addEventListener('submit', function(e) {
+// AJAX for comment submission
+document.getElementById('comment-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);

@@ -196,28 +196,4 @@ class CommentListView(ListView):
     ordering = ['-created_at']
 
 
-@login_required
-@require_POST
-def quick_add_comment(request, pk):
-    """AJAX endpoint for quick comment addition"""
-    post = get_object_or_404(Post, pk = pk)
-    
-    form = CommentForm(request.POST)
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.post = post
-        comment.author = request.user
-        comment.save()
-        
-        return JsonResponse({
-            'success': True,
-            'comment_id': comment.id,
-            'author': comment.author.username,
-            'content': comment.content,
-            'created_at': comment.created_at.strftime("%B %d, %Y at %I:%M %p")
-        })
-    
-    return JsonResponse({
-        'success': False,
-        'errors': form.errors
-    })
+
