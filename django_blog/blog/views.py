@@ -40,7 +40,7 @@ def profile(request):
 
 def post_list(request):
     from .models import Post
-    posts = Post.objects.all().order_by('-created_at')
+    posts = Post.objects.all().order_by('-published_date')
     return render(request, 'blog/post_list.html', {'posts': posts})
 
 # Blog Post CRUD Views
@@ -48,7 +48,7 @@ class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'  # <app>/<model>_<viewtype>.html
     context_object_name = 'posts'
-    ordering = ['-created_at']  # Show newest posts first
+    ordering = ['-published_date']  # Show newest posts first
     paginate_by = 5  # Show 5 posts per page
 
 class PostDetailView(DetailView):

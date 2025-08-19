@@ -11,7 +11,7 @@
         
         <div class="post-preview-delete">
             <h5>{{ object.title }}</h5>
-            <p class="text-muted">By {{ object.author.username }} on {{ object.created_at|date:"F d, Y" }}</p>
+            <p class="text-muted">By {{ object.author.username }} on {{ object.published_date|date:"F d, Y" }}</p>
             <p>{{ object.content|truncatewords:30 }}</p>
         </div>
         
