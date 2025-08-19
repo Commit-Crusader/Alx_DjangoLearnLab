@@ -136,9 +136,9 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
 
 @login_required
-def add_comment(request, post_id):
+def add_comment(request, pk):
     """Function-based view for adding a comment"""
-    post = get_object_or_404(Post, id=post_id)
+    post = get_object_or_404(Post, pk=pk)
 
     if request.method == 'POST':
         form = CommentForm(request.POST)
@@ -198,9 +198,9 @@ class CommentListView(ListView):
 
 @login_required
 @require_POST
-def quick_add_comment(request, post_id):
+def quick_add_comment(request, pk):
     """AJAX endpoint for quick comment addition"""
-    post = get_object_or_404(Post, id=post_id)
+    post = get_object_or_404(Post, pk = pk)
     
     form = CommentForm(request.POST)
     if form.is_valid():
