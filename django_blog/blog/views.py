@@ -43,10 +43,13 @@ def profile(request):
     else:
         form = UserUpdateForm(instance=request.user)
 
-    return render(request, 'registration/profile.html', {
+    user_posts = Post.objects.filter(author=request.user).order_by('-created_at')
+    context = {
         'form': form,
-        'user': request.user
-    })
+        'user': request.user,
+        'user_posts': user_posts
+    }
+    return render(request, 'registration/profile.html', context)
 
 
 # ---------------------------
@@ -58,7 +61,11 @@ class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'
     context_object_name = 'posts'
+<<<<<<< HEAD
     ordering = ['-created_at']  # Now using the correct field name
+=======
+    ordering = ['-created_at']
+>>>>>>> 08158e7 (feat: enhance blog with comments system and user management)
     paginate_by = 5
 
 
@@ -117,6 +124,23 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 # Comment Views
 # ---------------------------
 
+<<<<<<< HEAD
+=======
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """Create a new comment on a post"""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/add_comment.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post_id = self.kwargs['pk']
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['pk']})
+
+>>>>>>> 08158e7 (feat: enhance blog with comments system and user management)
 @login_required
 def add_comment(request, post_id):
     """Function-based view for adding a comment"""
@@ -203,6 +227,7 @@ def quick_add_comment(request, post_id):
         'success': False,
         'errors': form.errors
     })
+<<<<<<< HEAD
 
 
 @login_required
@@ -212,3 +237,5 @@ def profile(request):
         'user_posts': user_posts
     }
     return render(request, 'registration/profile.html', context)
+=======
+>>>>>>> 08158e7 (feat: enhance blog with comments system and user management)
