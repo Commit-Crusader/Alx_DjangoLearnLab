@@ -6,7 +6,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.views.decorators.http import require_POST
 from django.urls import reverse_lazy, reverse
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 
 from .models import Post, Comment
 from .forms import CustomUserCreationForm, UserUpdateForm, PostForm, CommentForm
@@ -58,7 +58,7 @@ class PostListView(ListView):
     model = Post
     template_name = 'blog/home.html'
     context_object_name = 'posts'
-    ordering = ['-published_date']
+    ordering = ['-created_at']  # Now using the correct field name
     paginate_by = 5
 
 
@@ -89,11 +89,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        messages.success(self.request, 'Your post has been created successfully!')
         return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('post-detail', kwargs={'pk': self.object.pk})
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
@@ -102,16 +98,9 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     form_class = PostForm
     template_name = 'blog/post_form.html'
 
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        messages.success(self.request, 'Your post has been updated successfully!')
-        return super().form_valid(form)
-
     def test_func(self):
-        return self.request.user == self.get_object().author
-
-    def get_success_url(self):
-        return reverse_lazy('post-detail', kwargs={'pk': self.object.pk})
+        post = self.get_object()
+        return self.request.user == post.author
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -123,30 +112,10 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         return self.request.user == self.get_object().author
 
-    def delete(self, request, *args, **kwargs):
-        messages.success(self.request, 'Your post has been deleted successfully!')
-        return super().delete(request, *args, **kwargs)
-
 
 # ---------------------------
 # Comment Views
 # ---------------------------
-
-class CommentCreateView(LoginRequiredMixin, CreateView):
-    """Create a new comment on a post"""
-    model = Comment
-    form_class = CommentForm
-    template_name = 'blog/comment_form.html'
-
-    def form_valid(self, form):
-        form.instance.author = self.request.user
-        form.instance.post_id = self.kwargs['post_pk']
-        messages.success(self.request, 'Your comment has been added successfully!')
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['post_pk']})
-
 
 @login_required
 def add_comment(request, post_id):
@@ -162,7 +131,6 @@ def add_comment(request, post_id):
             comment.save()
             messages.success(request, 'Your comment has been added successfully!')
             return redirect('post-detail', pk=post.pk)
-        messages.error(request, 'Please correct the errors below.')
     else:
         form = CommentForm()
 
@@ -179,7 +147,6 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return self.request.user == self.get_object().author
 
     def form_valid(self, form):
-        messages.success(self.request, 'Your comment has been updated successfully!')
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -202,36 +169,6 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return reverse('post-detail', kwargs={'pk': self.object.post.pk})
 
 
-@login_required
-@require_POST
-def quick_add_comment(request, post_id):
-    """AJAX endpoint for adding comments quickly"""
-    post = get_object_or_404(Post, id=post_id)
-    form = CommentForm(request.POST)
-
-    if form.is_valid():
-        comment = form.save(commit=False)
-        comment.post = post
-        comment.author = request.user
-        comment.save()
-
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({
-                'success': True,
-                'comment_id': comment.id,
-                'author': comment.author.username,
-                'content': comment.content,
-                'created_at': comment.created_at.strftime('%B %d, %Y at %I:%M %p'),
-            })
-        return redirect('post-detail', pk=post.pk)
-
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': False, 'errors': form.errors})
-
-    messages.error(request, 'Please correct the errors in your comment.')
-    return redirect('post-detail', pk=post.pk)
-
-
 class CommentListView(ListView):
     """List all comments (with optional filters)"""
     model = Comment
@@ -240,15 +177,38 @@ class CommentListView(ListView):
     paginate_by = 20
     ordering = ['-created_at']
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
 
-        post_id = self.request.GET.get('post_id')
-        if post_id:
-            queryset = queryset.filter(post_id=post_id)
+@login_required
+@require_POST
+def quick_add_comment(request, post_id):
+    """AJAX endpoint for quick comment addition"""
+    post = get_object_or_404(Post, id=post_id)
+    
+    form = CommentForm(request.POST)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.post = post
+        comment.author = request.user
+        comment.save()
+        
+        return JsonResponse({
+            'success': True,
+            'comment_id': comment.id,
+            'author': comment.author.username,
+            'content': comment.content,
+            'created_at': comment.created_at.strftime("%B %d, %Y at %I:%M %p")
+        })
+    
+    return JsonResponse({
+        'success': False,
+        'errors': form.errors
+    })
 
-        user_id = self.request.GET.get('user_id')
-        if user_id:
-            queryset = queryset.filter(author_id=user_id)
 
-        return queryset.select_related('post', 'author')
+@login_required
+def profile(request):
+    user_posts = Post.objects.filter(author=request.user).order_by('-created_at')
+    context = {
+        'user_posts': user_posts
+    }
+    return render(request, 'registration/profile.html', context)

@@ -1,0 +1,81 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}All Comments - Django Blog{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4"><i class="fas fa-comments"></i> All Comments</h2>
+        
+        {% if comments %}
+            {% for comment in comments %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <h6 class="card-subtitle mb-2">
+                                    <i class="fas fa-user"></i> {{ comment.author.username }}
+                                    <span class="text-muted ms-2">
+                                        commented on 
+                                        <a href="{% url 'blog:post-detail' comment.post.pk %}" class="text-decoration-none">
+                                            {{ comment.post.title }}
+                                        </a>
+                                    </span>
+                                </h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ comment.created_at|date:"F d, Y \a\t g:i A" }}
+                                </small>
+                                <div class="mt-2">
+                                    {{ comment.content|truncatewords:30|linebreaks }}
+                                </div>
+                            </div>
+                            
+                            <div class="ms-3">
+                                <a href="{% url 'blog:post-detail' comment.post.pk %}#comment-{{ comment.pk }}" 
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                {% if user == comment.author %}
+                                    <a href="{% url 'blog:edit-comment' comment.pk %}" 
+                                       class="btn btn-outline-warning btn-sm">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Comments pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+                <h4>No comments yet</h4>
+                <p class="text-muted">Comments will appear here as users engage with posts.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

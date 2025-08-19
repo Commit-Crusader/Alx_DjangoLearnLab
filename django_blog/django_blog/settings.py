@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -59,6 +61,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -128,6 +131,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Authentication settings
 # Redirects after login/logout
-LOGIN_REDIRECT_URL = 'blog-home'  # Where to go after login
-LOGOUT_REDIRECT_URL = 'blog-home'  # Where to go after logout
-LOGIN_URL = 'login'  # Where to redirect if login required
+LOGIN_REDIRECT_URL = 'blog:home'  # Where to go after login
+LOGOUT_REDIRECT_URL = 'login'  # Where to go after logout
+LOGIN_URL = 'login'  # Where to redirect if login required (uses your custom login page)
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Message tags for Bootstrap compatibility
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
