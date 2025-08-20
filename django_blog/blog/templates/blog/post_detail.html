@@ -99,7 +99,7 @@
 
         <!-- Comment Form (for authenticated users) -->
         {% if user.is_authenticated %}
-        <div class="comment-form" id="comment-form">
+        <div class="comment-form-container">
             <h5>Leave a Comment</h5>
             <form method="post" action="{% url 'blog:add_comment' post.id %}" id="comment-form">
                 {% csrf_token %}
@@ -164,75 +164,96 @@
 
 <script>
 // AJAX for comment submission
-document.getElementById('comment-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const submitButton = this.querySelector('button[type="submit"]');
-    const originalText = submitButton.textContent;
-    
-    submitButton.disabled = true;
-    submitButton.textContent = 'Posting...';
-    
-    fetch(this.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-        },
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Add new comment to the list
-            const commentsList = document.getElementById('comments-list');
-            const noComments = commentsList.querySelector('.no-comments');
+document.addEventListener('DOMContentLoaded', function() {
+    const commentForm = document.getElementById('comment-form');
+    if (commentForm) {
+        commentForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            if (noComments) {
-                noComments.remove();
-            }
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
             
-            const newComment = document.createElement('div');
-            newComment.className = 'comment';
-            newComment.id = 'comment-' + data.comment_id;
-            newComment.innerHTML = `
-                <div class="comment-header">
-                    <div>
-                        <span class="comment-author">${data.author}</span>
-                        <span class="comment-date">${data.created_at}</span>
-                    </div>
-                </div>
-                <div class="comment-content">
-                    ${data.content.replace(/\n/g, '<br>')}
-                </div>
-                <div class="comment-actions">
-                    <a href="/comment/${data.comment_id}/edit/" class="btn btn-outline-primary btn-sm">Edit</a>
-                    <a href="/comment/${data.comment_id}/delete/" class="btn btn-outline-danger btn-sm">Delete</a>
-                </div>
-            `;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Posting...';
             
-            commentsList.appendChild(newComment);
-            
-            // Clear form and update counter
-            this.reset();
-            const counter = document.querySelector('h3');
-            const currentCount = parseInt(counter.textContent.match(/\d+/)[0]);
-            counter.textContent = `Comments (${currentCount + 1})`;
-            
-            // Scroll to new comment
-            newComment.scrollIntoView({ behavior: 'smooth' });
-        } else {
-            alert('Error posting comment: ' + JSON.stringify(data.errors));
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while posting your comment.');
-    })
-    .finally(() => {
-        submitButton.disabled = false;
-        submitButton.textContent = originalText;
-    });
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add new comment to the list
+                    const commentsList = document.getElementById('comments-list');
+                    const noComments = commentsList.querySelector('.no-comments');
+                    
+                    if (noComments) {
+                        noComments.remove();
+                    }
+                    
+                    const newComment = document.createElement('div');
+                    newComment.className = 'comment';
+                    newComment.id = 'comment-' + data.comment_id;
+                    newComment.innerHTML = `
+                        <div class="comment-header">
+                            <div>
+                                <span class="comment-author">${data.author}</span>
+                                <span class="comment-date">${data.created_at}</span>
+                            </div>
+                        </div>
+                        <div class="comment-content">
+                            ${data.content.replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="comment-actions">
+                            <a href="/comment/${data.comment_id}/update/" class="btn btn-outline-primary btn-sm">Edit</a>
+                            <a href="/comment/${data.comment_id}/delete/" class="btn btn-outline-danger btn-sm">Delete</a>
+                        </div>
+                    `;
+                    
+                    commentsList.appendChild(newComment);
+                    
+                    // Clear form and update counter
+                    this.reset();
+                    const counter = document.querySelector('h3');
+                    const currentCount = parseInt(counter.textContent.match(/\d+/)[0]);
+                    counter.textContent = `Comments (${currentCount + 1})`;
+                    
+                    // Scroll to new comment
+                    newComment.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    // Display form errors
+                    if (data.errors && data.errors.content) {
+                        const contentField = document.querySelector('#id_content');
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'text-danger';
+                        errorDiv.innerHTML = data.errors.content.join('<br>');
+                        
+                        // Remove existing error messages
+                        const existingErrors = contentField.parentNode.querySelector('.text-danger');
+                        if (existingErrors) {
+                            existingErrors.remove();
+                        }
+                        
+                        contentField.parentNode.appendChild(errorDiv);
+                    } else {
+                        alert('Error posting comment. Please try again.');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while posting your comment. Please try again.');
+            })
+            .finally(() => {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            });
+        });
+    }
 });
 </script>
 {% endblock %}

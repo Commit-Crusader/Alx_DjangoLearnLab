@@ -132,7 +132,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('post-detail', kwargs={'pk': self.kwargs['pk']})
+        return reverse_lazy('blog:post-detail', kwargs={'pk': self.kwargs['pk']})
 
 
 @login_required
@@ -147,8 +147,26 @@ def add_comment(request, pk):
             comment.post = post
             comment.author = request.user
             comment.save()
+            
+            # Check if this is an AJAX request
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'comment_id': comment.id,
+                    'author': comment.author.username,
+                    'content': comment.content,
+                    'created_at': comment.created_at.strftime("%B %d, %Y at %I:%M %p")
+                })
+            
             messages.success(request, 'Your comment has been added successfully!')
             return redirect('post-detail', pk=post.pk)
+        else:
+            # Handle form validation errors for AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
     else:
         form = CommentForm()
 
@@ -168,7 +186,7 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+        return reverse('blog:post-detail', kwargs={'pk': self.object.post.pk})
 
 
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -184,7 +202,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+        return reverse('blog:post-detail', kwargs={'pk': self.object.post.pk})
 
 
 class CommentListView(ListView):
