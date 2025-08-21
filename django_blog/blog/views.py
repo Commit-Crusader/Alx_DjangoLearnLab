@@ -47,3 +47,13 @@ def profile(request):
         'title': 'Profile'
     }
     return render(request, 'auth/profile.html', context)
+
+
+def posts(request):
+    """Blog posts view displaying all posts"""
+    posts = Post.objects.all().order_by('-published_date')
+    context = {
+        'posts': posts,
+        'title': 'All Blog Posts'
+    }
+    return render(request, 'blog/posts.html', context)
