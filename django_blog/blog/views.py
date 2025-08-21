@@ -30,7 +30,7 @@ def register(request):
         'form': form,
         'title': 'Register'
     }
-    return render(request, 'auth/register.html', context)
+    return render(request, 'registration/register.html', context)
 
 @login_required
 def profile(request):
@@ -46,7 +46,7 @@ def profile(request):
         'user_posts': user_posts,
         'title': 'Profile'
     }
-    return render(request, 'auth/profile.html', context)
+    return render(request, 'registration/profile.html', context)
 
 
 def posts(request):
