@@ -135,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #Authentication flow
 
 LOGIN_URLS = 'login'
-LOGIN_REDIRECT_URL = 'profile'
+LOGIN_REDIRECT_URL = 'posts'
 LOGOUT_REDIRECT_URL = 'login'
 
 # (Optional) media for profile avatars

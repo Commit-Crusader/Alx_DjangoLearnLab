@@ -1,5 +1,6 @@
 
 /* Basic reset */
+/*
 * {
     margin: 0;
     padding: 0;
@@ -43,4 +44,57 @@ footer {
     padding: 10px;
     background-color: #333;
     color: white;
+}
+    */
+
+/* Center form on the page */
+.form-container {
+    max-width: 400px;
+    margin: 50px auto;   /* auto centers horizontally */
+    padding: 20px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+/* Style headings */
+.form-container h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Style form fields */
+.form-container form p {
+    margin: 15px 0;
+    text-align: left;
+}
+
+.form-container input[type="text"],
+.form-container input[type="email"],
+.form-container input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+/* Style the button */
+.form-container button {
+    margin-top: 15px;
+    width: 100%;
+    padding: 12px;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.form-container button:hover {
+    background-color: #555;
 }
