@@ -1,0 +1,47 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Profile - Django Blog{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h2>User Profile</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div class="profile-info">
+        <h3>Account Information</h3>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Member since:</strong> {{ user.date_joined|date:"F d, Y" }}</p>
+    </div>
+    
+    <div class="user-posts">
+        <h3>Your Blog Posts</h3>
+        {% if user_posts %}
+            <div class="posts-grid">
+                {% for post in user_posts %}
+                    <div class="post-card">
+                        <h4>{{ post.title }}</h4>
+                        <p class="post-date">{{ post.published_date|date:"F d, Y" }}</p>
+                        <p>{{ post.content|truncatewords:20 }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You haven't created any blog posts yet.</p>
+            <a href="{% url 'post-create' %}" class="btn btn-primary">Create Your First Post</a>
+        {% endif %}
+    </div>
+    
+    <div class="profile-actions">
+        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
+    </div>
+</div>
+{% endblock %}
