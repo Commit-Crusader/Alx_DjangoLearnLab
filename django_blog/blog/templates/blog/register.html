@@ -1,0 +1,61 @@
+<!-- blog/templates/blog/register.html -->
+{% extends 'blog/base.html' %}
+
+{% block title %}Register - Django Blog{% endblock %}
+
+{% block content %}
+<h2>Create Account</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <!-- Display form errors -->
+    {% if form.errors %}
+        <div class="messages">
+            <div class="error">
+                Please correct the errors below.
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="form-group">
+        <label for="{{ form.username.id_for_label }}">Username:</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+            <small style="color: red;">{{ form.username.errors.0 }}</small>
+        {% endif %}
+        <small>{{ form.username.help_text }}</small>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.email.id_for_label }}">Email:</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+            <small style="color: red;">{{ form.email.errors.0 }}</small>
+        {% endif %}
+        <small>{{ form.email.help_text }}</small>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.password1.id_for_label }}">Password:</label>
+        {{ form.password1 }}
+        {% if form.password1.errors %}
+            <small style="color: red;">{{ form.password1.errors.0 }}</small>
+        {% endif %}
+        <small>{{ form.password1.help_text }}</small>
+    </div>
+
+    <div class="form-group">
+        <label for="{{ form.password2.id_for_label }}">Confirm Password:</label>
+        {{ form.password2 }}
+        {% if form.password2.errors %}
+            <small style="color: red;">{{ form.password2.errors.0 }}</small>
+        {% endif %}
+        <small>{{ form.password2.help_text }}</small>
+    </div>
+
+    <button type="submit" class="btn">Register</button>
+</form>
+
+<p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
+{% endblock %}

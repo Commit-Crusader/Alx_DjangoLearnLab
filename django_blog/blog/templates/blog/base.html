@@ -1,35 +1,52 @@
-{# blog/templates/blog/base.html #}
-{% load static %}
+<!-- blog/templates/blog/base.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Django Blog{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Simple styling */
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 5px; }
+        .navbar { background: #333; padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+        .navbar a { color: white; text-decoration: none; margin-right: 15px; }
+        .navbar a:hover { text-decoration: underline; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px; }
+        .btn { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 3px; cursor: pointer; }
+        .btn:hover { background: #0056b3; }
+        .messages { margin-bottom: 20px; }
+        .messages .success { background: #d4edda; color: #155724; padding: 10px; border-radius: 3px; }
+        .messages .error { background: #f8d7da; color: #721c24; padding: 10px; border-radius: 3px; }
+    </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a href="{% url 'home' %}">Home</a></li>
-                <li><a href="{% url 'posts' %}">Blog Posts</a></li>
-                <li><a href="{% url 'login' %}">Login</a></li>
-                <li><a href="{% url 'register' %}">Register</a></li>
-            </ul>
-        </nav>
-    </header>
+    <nav class="navbar">
+        <a href="/">Home</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'profile' %}">Profile</a>
+            <a href="{% url 'logout' %}">Logout ({{ user.username }})</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'register' %}">Register</a>
+        {% endif %}
+    </nav>
 
-    <div class="content">
+    <div class="container">
+        <!-- Display messages -->
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="{{ message.tags }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Page content -->
         {% block content %}
-        <!-- Page-specific content goes here -->
         {% endblock %}
     </div>
-
-    <footer>
-        <p>&copy; 2024 Django Blog</p>
-    </footer>
-
-    <script src="{% static 'js/scripts.js' %}"></script>
 </body>
 </html>

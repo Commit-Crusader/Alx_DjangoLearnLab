@@ -2,58 +2,49 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import UserRegisterForm
+from .forms import CustomUserCreationForm
 from .models import Post
 
-def home(request):
-    """Home page view displaying recent blog posts"""
-    posts = Post.objects.all().order_by('-published_date')[:5]
-    context = {
-        'posts': posts,
-        'title': 'Welcome to Django Blog'
-    }
-    return render(request, 'blog/home.html', context)
-
-def register(request):
-    """User registration view"""
+def register_view(request):
+    """
+    Handle user registration
+    """
     if request.method == 'POST':
-        form = UserRegisterForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
+            # Save the new user
             user = form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created successfully for {username}! You can now log in.')
-            return redirect('login')
+            # Log the user in automatically after registration
+            login(request, user)
+            messages.success(request, 'Registration successful!')
+            return redirect('profile')  # Redirect to profile page
     else:
-        form = UserRegisterForm()
+        form = CustomUserCreationForm()
     
-    context = {
-        'form': form,
-        'title': 'Register'
-    }
-    return render(request, 'registration/register.html', context)
+    return render(request, 'blog/register.html', {'form': form})
 
 @login_required
-def profile(request):
-    """User profile view for viewing and editing profile"""
+def profile_view(request):
+    """
+    Display user profile page - requires login
+    """
+    return render(request, 'blog/profile.html', {'user': request.user})
+
+@login_required
+def edit_profile_view(request):
+    """
+    Allow users to edit their profile information
+    """
     if request.method == 'POST':
-        # Handle profile updates here
-        # For now, we'll just show the profile
+        # Get form data
+        email = request.POST.get('email')
+        
+        # Update user information
+        user = request.user
+        user.email = email
+        user.save()
+        
         messages.success(request, 'Profile updated successfully!')
         return redirect('profile')
     
-    user_posts = Post.objects.filter(author=request.user).order_by('-published_date')
-    context = {
-        'user_posts': user_posts,
-        'title': 'Profile'
-    }
-    return render(request, 'registration/profile.html', context)
-
-
-def posts(request):
-    """Blog posts view displaying all posts"""
-    posts = Post.objects.all().order_by('-published_date')
-    context = {
-        'posts': posts,
-        'title': 'All Blog Posts'
-    }
-    return render(request, 'blog/posts.html', context)
+    return render(request, 'blog/edit_profile.html', {'user': request.user})
