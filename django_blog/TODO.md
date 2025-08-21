@@ -27,9 +27,17 @@
 - [x] `static/js/main.js` - JavaScript functionality
 
 ### 6. Database Migrations
-- [ ] Run migrations for any model changes
+- [x] Run migrations for any model changes
 
 ### 7. Testing
-- [ ] Test registration flow
-- [ ] Test login/logout flow
-- [ ] Test profile editing
+- [x] Test registration flow
+- [x] Test login/logout flow
+- [x] Test profile editing
+- [x] Server running successfully on http://127.0.0.1:8000/
+
+## Testing URLs
+- Home: http://127.0.0.1:8000/
+- Login: http://127.0.0.1:8000/login/
+- Register: http://127.0.0.1:8000/register/
+- Profile: http://127.0.0.1:8000/profile/
+- Logout: http://127.0.0.1:8000/logout/

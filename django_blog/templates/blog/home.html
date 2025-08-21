@@ -13,7 +13,6 @@
             <h2>Welcome back, {{ user.username }}!</h2>
             <div class="user-actions">
                 <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
-                <a href="{% url 'post-create' %}" class="btn btn-success">Create New Post</a>
             </div>
         </div>
     {% else %}
@@ -37,7 +36,6 @@
                             By {{ post.author.username }} on {{ post.published_date|date:"F d, Y" }}
                         </p>
                         <p>{{ post.content|truncatewords:30 }}</p>
-                        <a href="{% url 'post-detail' post.pk %}" class="btn btn-sm btn-outline-primary">Read More</a>
                     </div>
                 {% endfor %}
             </div>
