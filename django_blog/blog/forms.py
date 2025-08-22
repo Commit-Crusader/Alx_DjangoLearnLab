@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from .models import Post
 
 class UserRegisterForm(UserCreationForm):
     """Custom user registration form with email field"""
@@ -24,3 +25,27 @@ class UserRegisterForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+class PostForm(forms.ModelForm):
+    """Form for creating and editing blog posts"""
+    
+    class Meta:
+        model = Post
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter post title...'
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Write your blog post content here...',
+                'rows': 10
+            })
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add labels
+        self.fields['title'].label = 'Post Title'
+        self.fields['content'].label = 'Content'

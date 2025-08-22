@@ -15,6 +15,10 @@ urlpatterns = [
     # Home page
     path('', views.home_view, name='home'),
     
-    # Posts
-    path('posts/', views.Post, name='posts'),
+    # Posts URLs
+    path('posts/', views.post_list_view, name='post_list'),
+    path('posts/<int:post_id>/', views.post_detail_view, name='post_detail'),
+    path('posts/create/', views.create_post_view, name='create_post'),
+    path('posts/<int:post_id>/edit/', views.edit_post_view, name='edit_post'),
+    path('posts/<int:post_id>/delete/', views.delete_post_view, name='delete_post'),
 ]
