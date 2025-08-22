@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpRequest
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from .forms import UserRegisterForm, PostForm
 from .models import Post
 
@@ -67,111 +70,105 @@ def edit_profile_view(request):
     
     return render(request, 'blog/edit_profile.html', {'user': request.user})
 
-def post_list_view(request):
+class ListView(ListView):
     """
     Display all blog posts with pagination and search
     """
-    # Get all posts ordered by newest first
-    posts = Post.objects.all().order_by('-published_date')
-    
-    # Search functionality
-    search_query = request.GET.get('search')
-    if search_query:
-        posts = posts.filter(
-            Q(title__icontains=search_query) | 
-            Q(content__icontains=search_query) |
-            Q(author__username__icontains=search_query)
-        )
-    
-    # Pagination
-    paginator = Paginator(posts, 5)  # Show 5 posts per page
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    
-    context = {
-        'page_obj': page_obj,
-        'search_query': search_query
-    }
-    return render(request, 'blog/post_list.html', context)
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    paginate_by = 5
+    ordering = ['-published_date']
 
-def post_detail_view(request, post_id):
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) | 
+                Q(content__icontains=search_query) |
+                Q(author__username__icontains=search_query)
+            )
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        return context
+
+class DetailView(DetailView):
     """
     Display a single blog post
     """
-    post = get_object_or_404(Post, id=post_id)
-    context = {
-        'post': post
-    }
-    return render(request, 'blog/post_detail.html', context)
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
 
-@login_required
-def create_post_view(request):
+class CreateView(LoginRequiredMixin, CreateView):
     """
     Create a new blog post
     """
-    if request.method == 'POST':
-        form = PostForm(request.POST)
-        if form.is_valid():
-            post = form.save(commit=False)
-            post.author = request.user
-            post.save()
-            messages.success(request, 'Your post has been created successfully!')
-            return redirect('post_detail', post_id=post.id)
-    else:
-        form = PostForm()
-    
-    context = {
-        'form': form,
-        'title': 'Create New Post'
-    }
-    return render(request, 'blog/create_post.html', context)
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/create_post.html'
 
-@login_required
-def edit_post_view(request, post_id):
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your post has been created successfully!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Create New Post'
+        return context
+
+class UpdateView(LoginRequiredMixin, UpdateView):
     """
     Edit an existing blog post (author only)
     """
-    post = get_object_or_404(Post, id=post_id)
-    
-    # Check if the user is the author
-    if post.author != request.user:
-        messages.error(request, 'You can only edit your own posts!')
-        return redirect('post_detail', post_id=post.id)
-    
-    if request.method == 'POST':
-        form = PostForm(request.POST, instance=post)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your post has been updated successfully!')
-            return redirect('post_detail', post_id=post.id)
-    else:
-        form = PostForm(instance=post)
-    
-    context = {
-        'form': form,
-        'post': post,
-        'title': 'Edit Post'
-    }
-    return render(request, 'blog/edit_post.html', context)
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/edit_post.html'
+    context_object_name = 'post'
 
-@login_required
-def delete_post_view(request, post_id):
+    def form_valid(self, form):
+        messages.success(self.request, 'Your post has been updated successfully!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Post'
+        return context
+
+    def dispatch(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.author != request.user:
+            messages.error(request, 'You can only edit your own posts!')
+            return redirect('post_detail', pk=post.pk)
+        return super().dispatch(request, *args, **kwargs)
+
+class DeleteView(LoginRequiredMixin, DeleteView):
     """
     Delete a blog post (author only)
     """
-    post = get_object_or_404(Post, id=post_id)
-    
-    # Check if the user is the author
-    if post.author != request.user:
-        messages.error(request, 'You can only delete your own posts!')
-        return redirect('post_detail', post_id=post.id)
-    
-    if request.method == 'POST':
-        post.delete()
+    model = Post
+    template_name = 'blog/delete_post.html'
+    context_object_name = 'post'
+    success_url = reverse_lazy('post_list')
+
+    def dispatch(self, request, *args, **kwargs):
+        post = self.get_object()
+        if post.author != request.user:
+            messages.error(request, 'You can only delete your own posts!')
+            return redirect('post_detail', pk=post.pk)
+        return super().dispatch(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
         messages.success(request, 'Your post has been deleted successfully!')
-        return redirect('post_list')
-    
-    context = {
-        'post': post
-    }
-    return render(request, 'blog/delete_post.html', context)
+        return super().delete(request, *args, **kwargs)
