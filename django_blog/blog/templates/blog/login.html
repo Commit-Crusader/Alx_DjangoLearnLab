@@ -4,8 +4,9 @@
 {% block title %}Login - Django Blog{% endblock %}
 
 {% block content %}
-<h2>Login</h2>
+<h2 style="text-align: center;">Login</h2>
 
+<div style="max-width: 400px; margin: 0 auto;">
 <form method="post">
     {% csrf_token %}
     
@@ -36,6 +37,7 @@
 
     <button type="submit" class="btn">Login</button>
 </form>
+</div>
 
 <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
 {% endblock %}

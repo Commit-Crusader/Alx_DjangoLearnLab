@@ -1,0 +1,42 @@
+<!-- blog/templates/blog/edit_profile.html -->
+{% extends 'blog/base.html' %}
+
+{% block title %}Edit Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<h2>Edit Profile</h2>
+
+<form method="post">
+    {% csrf_token %}
+    
+    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+        <strong>Note:</strong> You can update your email address below. Username cannot be changed.
+    </div>
+
+    <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" value="{{ user.username }}" disabled 
+               style="background-color: #f8f9fa; cursor: not-allowed;">
+        <small style="color: #6c757d;">Username cannot be changed</small>
+    </div>
+
+    <div class="form-group">
+        <label for="email">Email Address:</label>
+        <input type="email" id="email" name="email" value="{{ user.email|default:'' }}" 
+               placeholder="Enter your email address" required>
+        <small>We'll never share your email with anyone else.</small>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <button type="submit" class="btn">Update Profile</button>
+        <a href="{% url 'profile' %}" class="btn" style="background: #6c757d; margin-left: 10px;">Cancel</a>
+    </div>
+</form>
+
+<div style="margin-top: 30px; padding: 15px; background: #f8d7da; border-radius: 5px; border-left: 4px solid #dc3545;">
+    <h4 style="color: #721c24;">Security Information</h4>
+    <p style="color: #721c24; margin-bottom: 0;">
+        To change your password, please contact support or use the password reset feature.
+    </p>
+</div>
+{% endblock %}

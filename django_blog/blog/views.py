@@ -2,15 +2,21 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .forms import CustomUserCreationForm
+from .forms import UserRegisterForm
 from .models import Post
+
+def home_view(request):
+    """
+    Display the home page
+    """
+    return render(request, 'blog/home.html')
 
 def register_view(request):
     """
     Handle user registration
     """
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = UserRegisterForm(request.POST)
         if form.is_valid():
             # Save the new user
             user = form.save()
@@ -19,7 +25,7 @@ def register_view(request):
             messages.success(request, 'Registration successful!')
             return redirect('profile')  # Redirect to profile page
     else:
-        form = CustomUserCreationForm()
+        form = UserRegisterForm()
     
     return render(request, 'blog/register.html', {'form': form})
 

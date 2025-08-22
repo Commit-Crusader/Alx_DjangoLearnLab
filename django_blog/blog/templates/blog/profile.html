@@ -1,26 +1,42 @@
-{% extends "blog/base.html" %}
-{% block title %}Profile{% endblock %}
+<!-- blog/templates/blog/profile.html -->
+{% extends 'blog/base.html' %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
 
 {% block content %}
-<div class="form-container">
-    <h2>Your Profile</h2>
+<h2>User Profile</h2>
 
-    {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-                <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+<div style="background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px;">
+    <h3>Welcome, {{ user.username }}!</h3>
+    
+    <div style="margin-bottom: 15px;">
+        <strong>Username:</strong> {{ user.username }}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong>Email:</strong> {{ user.email|default:"Not provided" }}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong>Date Joined:</strong> {{ user.date_joined|date:"F d, Y" }}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+        <strong>Last Login:</strong> {{ user.last_login|date:"F d, Y g:i A"|default:"Never" }}
+    </div>
+</div>
 
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
-
-    <form method="post">
+<div style="margin-top: 20px;">
+    <a href="{% url 'edit_profile' %}" class="btn">Edit Profile</a>
+    <form method="post" action="{% url 'logout' %}" style="display: inline;">
         {% csrf_token %}
-        <label for="email">Update Email:</label>
-        <input type="email" name="email" id="email" value="{{ user.email }}">
-        <button type="submit">Update</button>
+        <button type="submit" class="btn" style="background: #dc3545; margin-left: 10px;">Logout</button>
     </form>
+</div>
+
+<div style="margin-top: 30px; padding: 15px; background: #e3f2fd; border-radius: 5px;">
+    <h4>Profile Stats</h4>
+    <p>Account Status: <span style="color: green; font-weight: bold;">Active</span></p>
+    <p>Member since: {{ user.date_joined|timesince }} ago</p>
 </div>
 {% endblock %}
