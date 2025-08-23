@@ -1,0 +1,27 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Delete Post - Blog{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="mb-4">Delete Post</h1>
+            
+            <div class="alert alert-warning">
+                <h4 class="alert-heading">Are you sure?</h4>
+                <p>You are about to delete the post: <strong>{{ post.title }}</strong></p>
+                <p class="mb-0">This action cannot be undone.</p>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-danger">Yes, Delete Post</button>
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

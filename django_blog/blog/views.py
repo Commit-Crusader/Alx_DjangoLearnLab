@@ -6,7 +6,9 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import HttpRequest
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import (
+    ListView, DetailView, CreateView, UpdateView, DeleteView
+)
 from django.urls import reverse_lazy
 from .forms import UserRegisterForm, PostForm
 from .models import Post
@@ -96,7 +98,7 @@ class ListView(ListView):
         context['search_query'] = self.request.GET.get('search', '')
         return context
 
-class DetailView(DetailView):
+class DetailView( DetailView):
     """
     Display a single blog post
     """
@@ -110,7 +112,7 @@ class CreateView(LoginRequiredMixin, CreateView):
     """
     model = Post
     form_class = PostForm
-    template_name = 'blog/create_post.html'
+    template_name = 'blog/post_create.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -131,7 +133,7 @@ class UpdateView(LoginRequiredMixin, UpdateView):
     """
     model = Post
     form_class = PostForm
-    template_name = 'blog/edit_post.html'
+    template_name = 'blog/post_update.html'
     context_object_name = 'post'
 
     def form_valid(self, form):
@@ -143,7 +145,7 @@ class UpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['title'] = 'Edit Post'
+        context['title'] = 'Update Post'
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -158,7 +160,7 @@ class DeleteView(LoginRequiredMixin, DeleteView):
     Delete a blog post (author only)
     """
     model = Post
-    template_name = 'blog/delete_post.html'
+    template_name = 'blog/post_delete.html'
     context_object_name = 'post'
     success_url = reverse_lazy('post_list')
 

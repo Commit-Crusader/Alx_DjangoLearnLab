@@ -1,28 +1,15 @@
-# Blog Post Management System - Implementation Checklist
 
-## Phase 1: Core Components
-- [ ] Create PostForm in forms.py
-- [ ] Implement CRUD views in views.py
-- [ ] Create URL patterns for post operations
-- [ ] Update base.html navigation
+# Django Generic Views Refactoring TODO
 
-## Phase 2: Templates
-- [ ] Create post_list.html template
-- [ ] Create post_detail.html template
-- [ ] Create create_post.html template
-- [ ] Create edit_post.html template
-- [ ] Update home.html to display posts
-
-## Phase 3: Testing & Validation
-- [ ] Test post creation
-- [ ] Test post editing (author only)
-- [ ] Test post deletion (author only)
-- [ ] Test post listing
-- [ ] Test post detail view
-- [ ] Verify user permissions
-
-## Phase 4: Enhancements
-- [ ] Add pagination to post lists
-- [ ] Add search functionality
-- [ ] Add post filtering/sorting
-- [ ] Add responsive design improvements
+## Tasks
+- [x] Refactor views.py to use Django generic class-based views
+  - [x] Import required generic views from django.views.generic
+  - [x] Create ListView using ListView
+  - [x] Create DetailView using DetailView
+  - [x] Create CreateView using CreateView
+  - [x] Create UpdateView using UpdateView
+  - [x] Create DeleteView using DeleteView
+  - [x] Update login_required decorators to use LoginRequiredMixin
+  - [x] Update context data and template names
+- [x] Update urls.py to use class-based views
+- [ ] Test all functionality works correctly
