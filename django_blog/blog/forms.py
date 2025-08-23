@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Post, Comment
+from .models import Post, Comment, Category, Tag
 
 class UserRegisterForm(UserCreationForm):
     """Custom user registration form with email field"""
@@ -28,10 +28,23 @@ class UserRegisterForm(UserCreationForm):
 
 class PostForm(forms.ModelForm):
     """Form for creating and editing blog posts"""
+    category = forms.ModelChoiceField(
+        queryset=Category.objects.all(),
+        required=False,
+        empty_label="Select a category...",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        help_text="Select one or more tags for your post"
+    )
     
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'category', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -49,10 +62,8 @@ class PostForm(forms.ModelForm):
         # Add labels
         self.fields['title'].label = 'Post Title'
         self.fields['content'].label = 'Content'
-
-# blog/forms.py
-from django import forms
-from .models import Comment
+        self.fields['category'].label = 'Category'
+        self.fields['tags'].label = 'Tags'
 
 class CommentForm(forms.ModelForm):
     content = forms.CharField(

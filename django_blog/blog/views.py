@@ -9,9 +9,9 @@ from django.http import HttpRequest
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from .forms import UserRegisterForm, PostForm, CommentForm
-from .models import Post, Comment
+from .models import Post, Comment, Category, Tag
 
 def home_view(request):
     """
@@ -72,7 +72,7 @@ def edit_profile_view(request):
     
     return render(request, 'blog/edit_profile.html', {'user': request.user})
 
-class ListView(ListView):
+class PostListView(ListView):
     """
     Display all blog posts with pagination and search
     """
@@ -85,20 +85,34 @@ class ListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         search_query = self.request.GET.get('search')
+        category_slug = self.request.GET.get('category')
+        tag_slug = self.request.GET.get('tag')
+        
         if search_query:
             queryset = queryset.filter(
                 Q(title__icontains=search_query) | 
                 Q(content__icontains=search_query) |
                 Q(author__username__icontains=search_query)
             )
+        
+        if category_slug:
+            queryset = queryset.filter(category__slug=category_slug)
+        
+        if tag_slug:
+            queryset = queryset.filter(tags__slug=tag_slug)
+        
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['search_query'] = self.request.GET.get('search', '')
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
+        context['current_category'] = self.request.GET.get('category', '')
+        context['current_tag'] = self.request.GET.get('tag', '')
         return context
 
-class DetailView( DetailView):
+class PostDetailView(DetailView):
     """
     Display a single blog post
     """
@@ -106,7 +120,13 @@ class DetailView( DetailView):
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
 
-class CreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
+        return context
+
+class PostCreateView(LoginRequiredMixin, CreateView):
     """
     Create a new blog post
     """
@@ -125,9 +145,11 @@ class CreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Create New Post'
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
         return context
 
-class UpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     Edit an existing blog post (author only)
     """
@@ -146,16 +168,19 @@ class UpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Update Post'
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
         return context
 
-    def dispatch(self, request, *args, **kwargs):
+    def test_func(self):
         post = self.get_object()
-        if post.author != request.user:
-            messages.error(request, 'You can only edit your own posts!')
-            return redirect('post_detail', pk=post.pk)
-        return super().dispatch(request, *args, **kwargs)
+        return self.request.user == post.author
 
-class DeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    def handle_no_permission(self):
+        messages.error(self.request, 'You can only edit your own posts!')
+        return redirect('post_detail', pk=self.get_object().pk)
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     Delete a blog post (author only)
     """
@@ -164,16 +189,72 @@ class DeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     context_object_name = 'post'
     success_url = reverse_lazy('post_list')
 
-    def dispatch(self, request, *args, **kwargs):
+    def test_func(self):
         post = self.get_object()
-        if post.author != request.user:
-            messages.error(request, 'You can only delete your own posts!')
-            return redirect('post_detail', pk=post.pk)
-        return super().dispatch(request, *args, **kwargs)
+        return self.request.user == post.author
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'You can only delete your own posts!')
+        return redirect('post_detail', pk=self.get_object().pk)
 
     def delete(self, request, *args, **kwargs):
-        messages.success(request, 'Your post has been deleted successfully!')
+        messages.success(self.request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
+
+# Category and Tag views
+class CategoryListView(ListView):
+    """
+    Display all categories
+    """
+    model = Category
+    template_name = 'blog/category_list.html'
+    context_object_name = 'categories'
+    paginate_by = 10
+
+class CategoryDetailView(DetailView):
+    """
+    Display posts for a specific category
+    """
+    model = Category
+    template_name = 'blog/category_detail.html'
+    context_object_name = 'category'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = self.get_object()
+        context['posts'] = Post.objects.filter(category=category).order_by('-published_date')
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
+        return context
+
+class TagListView(ListView):
+    """
+    Display all tags
+    """
+    model = Tag
+    template_name = 'blog/tag_list.html'
+    context_object_name = 'tags'
+    paginate_by = 10
+
+class TagDetailView(DetailView):
+    """
+    Display posts for a specific tag
+    """
+    model = Tag
+    template_name = 'blog/tag_detail.html'
+    context_object_name = 'tag'
+    slug_field = 'slug'
+    slug_url_kwarg = 'slug'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        tag = self.get_object()
+        context['posts'] = Post.objects.filter(tags=tag).order_by('-published_date')
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
+        return context
 
 # Comment functionality 
 #class CommentCreateView(LoginRequiredMixin, CreateView):
@@ -230,9 +311,9 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return redirect('post_detail', pk=self.get_object().post.pk)
 """
 # Alternative function-based view for comment deletion
-"""@login_required
-def delete_comment(request, comment_id):
-    comment = get_object_or_404(Comment, id=comment_id)
+@login_required
+def delete_comment(request, pk):
+    comment = get_object_or_404(Comment, id=pk)
     post_pk = comment.post.pk
     
     if request.user != comment.author:
@@ -244,4 +325,3 @@ def delete_comment(request, comment_id):
         messages.success(request, 'Your comment has been deleted successfully!')
     
     return redirect('post_detail', pk=post_pk)
-    """
