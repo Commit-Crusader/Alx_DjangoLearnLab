@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -106,7 +106,7 @@ class DetailView( DetailView):
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
 
-class CreateView(LoginRequiredMixin, CreateView):
+class CreateView(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     """
     Create a new blog post
     """
@@ -127,7 +127,7 @@ class CreateView(LoginRequiredMixin, CreateView):
         context['title'] = 'Create New Post'
         return context
 
-class UpdateView(LoginRequiredMixin, UpdateView):
+class UpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     """
     Edit an existing blog post (author only)
     """
@@ -155,7 +155,7 @@ class UpdateView(LoginRequiredMixin, UpdateView):
             return redirect('post_detail', pk=post.pk)
         return super().dispatch(request, *args, **kwargs)
 
-class DeleteView(LoginRequiredMixin, DeleteView):
+class DeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """
     Delete a blog post (author only)
     """
