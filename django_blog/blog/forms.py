@@ -35,16 +35,18 @@ class PostForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
-    tags = forms.ModelMultipleChoiceField(
-        queryset=Tag.objects.all(),
+    tags = forms.CharField(
         required=False,
-        widget=forms.CheckboxSelectMultiple,
-        help_text="Select one or more tags for your post"
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter tags separated by commas...'
+        }),
+        help_text="Enter tags separated by commas (e.g., python, django, web)"
     )
     
     class Meta:
         model = Post
-        fields = ['title', 'content', 'category', 'tags']
+        fields = ['title', 'content', 'category']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -64,6 +66,27 @@ class PostForm(forms.ModelForm):
         self.fields['content'].label = 'Content'
         self.fields['category'].label = 'Category'
         self.fields['tags'].label = 'Tags'
+        
+        # If editing an existing post, populate tags field
+        if self.instance and self.instance.pk:
+            self.fields['tags'].initial = ', '.join([tag.name for tag in self.instance.tags.all()])
+    
+    def save(self, commit=True):
+        """Save the post and handle tags"""
+        post = super().save(commit=False)
+        
+        if commit:
+            post.save()
+            
+            # Handle tags
+            tag_string = self.cleaned_data.get('tags', '')
+            if tag_string:
+                tag_names = [tag.strip() for tag in tag_string.split(',') if tag.strip()]
+                post.tags.set(*tag_names)
+            else:
+                post.tags.clear()
+        
+        return post
 
 class CommentForm(forms.ModelForm):
     content = forms.CharField(
