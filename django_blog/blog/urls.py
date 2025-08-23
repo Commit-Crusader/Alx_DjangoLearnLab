@@ -28,7 +28,7 @@ urlpatterns = [
 
     # Tag URLs
     path('tags/', views.TagListView.as_view(), name='tag_list'),
-    path('tag/<slug:slug>/', views.TagDetailView.as_view(), name='tag_detail'),
+    path('tags/<slug:tag_slug>/', views.PostByTagListView.as_view(), name='tag_detail'),
 
     # Comments URLs
     path('post/<int:pk>/comments/new/', views.add_comment, name='add_comment'),
