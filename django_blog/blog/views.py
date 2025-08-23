@@ -260,9 +260,9 @@ class TagDetailView(DetailView):
 #class CommentCreateView(LoginRequiredMixin, CreateView):
 # Comment Views
 @login_required
-def add_comment(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    
+def add_comment(request, pk):
+    post = get_object_or_404(Post, id=pk)
+
     if request.method == 'POST':
         form = CommentForm(request.POST)
         if form.is_valid():

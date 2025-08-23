@@ -83,7 +83,7 @@
                     {% if search_query %}
                         No posts found matching "{{ search_query }}".
                     {% else %}
-                        No posts available yet. Be the first to <a href="{% url 'create_post' %}">create a post</a>!
+                        No posts available yet. Be the first to <a href="{% url 'post_create' %}">create a post</a>!
                     {% endif %}
                 </div>
             {% endif %}
