@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Post
+from .models import Post, Comment
 
 class UserRegisterForm(UserCreationForm):
     """Custom user registration form with email field"""
@@ -49,3 +49,29 @@ class PostForm(forms.ModelForm):
         # Add labels
         self.fields['title'].label = 'Post Title'
         self.fields['content'].label = 'Content'
+
+# blog/forms.py
+from django import forms
+from .models import Comment
+
+class CommentForm(forms.ModelForm):
+    content = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'class': 'form-control',
+            'rows': 4,
+            'placeholder': 'Enter your comment here...',
+            'required': True
+        }),
+        label='Comment',
+        max_length=1000
+    )
+    
+    class Meta:
+        model = Comment
+        fields = ['content']
+    
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if len(content.strip()) < 5:
+            raise forms.ValidationError("Comment must be at least 5 characters long.")
+        return content

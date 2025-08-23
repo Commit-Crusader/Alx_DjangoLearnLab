@@ -10,8 +10,8 @@ from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
 from django.urls import reverse_lazy
-from .forms import UserRegisterForm, PostForm
-from .models import Post
+from .forms import UserRegisterForm, PostForm, CommentForm
+from .models import Post, Comment
 
 def home_view(request):
     """
@@ -174,3 +174,74 @@ class DeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, 'Your post has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
+
+# Comment functionality 
+#class CommentCreateView(LoginRequiredMixin, CreateView):
+# Comment Views
+@login_required
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            messages.success(request, 'Your comment has been added successfully!')
+            return redirect('post_detail', pk=post.pk)
+        else:
+            messages.error(request, 'There was an error with your comment. Please try again.')
+    
+    return redirect('post_detail', pk=post.pk)
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_update.html'
+    
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Your comment has been updated successfully!')
+        return reverse('post_detail', kwargs={'pk': self.object.post.pk})
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'You can only edit your own comments.')
+        return redirect('post_detail', pk=self.get_object().post.pk)
+
+""""class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'blog/comment_delete.html'
+    
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+    
+    def get_success_url(self):
+        messages.success(self.request, 'Your comment has been deleted successfully!')
+        return reverse('post_detail', kwargs={'pk': self.object.post.pk})
+    
+    def handle_no_permission(self):
+        messages.error(self.request, 'You can only delete your own comments.')
+        return redirect('post_detail', pk=self.get_object().post.pk)
+"""
+# Alternative function-based view for comment deletion
+"""@login_required
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    post_pk = comment.post.pk
+    
+    if request.user != comment.author:
+        messages.error(request, 'You can only delete your own comments.')
+        return redirect('post_detail', pk=post_pk)
+    
+    if request.method == 'POST':
+        comment.delete()
+        messages.success(request, 'Your comment has been deleted successfully!')
+    
+    return redirect('post_detail', pk=post_pk)
+    """

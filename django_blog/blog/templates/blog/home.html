@@ -14,7 +14,7 @@
                     <p>You are successfully logged in to your account.</p>
                     <hr>
                     <a href="{% url 'profile' %}" class="btn btn-primary">View Profile</a>
-                    <a href="{% url 'create_post' %}" class="btn btn-success">Create New Post</a>
+                    <a href="{% url 'post_create' %}" class="btn btn-success">Create New Post</a>
                 </div>
             {% else %}
                 <div class="card">
@@ -51,7 +51,7 @@
                     <div class="alert alert-info">
                         No posts available yet. 
                         {% if user.is_authenticated %}
-                            <a href="{% url 'create_post' %}" class="alert-link">Be the first to create a post!</a>
+                            <a href="{% url 'post_create' %}" class="alert-link">Be the first to create a post!</a>
                         {% else %}
                             <a href="{% url 'register' %}" class="alert-link">Register and be the first to create a post!</a>
                         {% endif %}
@@ -69,7 +69,7 @@
                 <div class="card-body">
                     <a href="{% url 'post_list' %}" class="btn btn-outline-primary w-100 mb-2">All Posts</a>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'create_post' %}" class="btn btn-success w-100 mb-2">Create Post</a>
+                        <a href="{% url 'post_create' %}" class="btn btn-success w-100 mb-2">Create Post</a>
                         <a href="{% url 'profile' %}" class="btn btn-outline-secondary w-100">My Profile</a>
                     {% else %}
                         <a href="{% url 'login' %}" class="btn btn-primary w-100 mb-2">Login</a>
