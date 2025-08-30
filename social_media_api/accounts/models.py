@@ -14,3 +14,6 @@ class User(AbstractUser):
     
     def following_count(self):
         return self.following.count()
+    
+    
+#class
