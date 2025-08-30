@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from .models import  User
@@ -39,14 +40,30 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class FollowerUserView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+class FollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        user = request.user
-        follower_id = request.data.get("follower_id")
-        if follower_id:
-            follower = User.objects.get(id=follower_id)
-            user.followers.add(follower)
-            return Response({"message": "User followed successfully."}, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid follower ID."}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, user_id):
+        if request.user.id == user_id:
+            return Response({"detail": "You cannot follow yourself."}, status=400)
+        target = get_object_or_404(User, pk=user_id)
+        request.user.following.add(target)  
+        return Response({
+            "status": "followed",
+            "target_user_id": target.id,
+            "followers_count": target.followers_count,
+            "following_count": request.user.following_count,
+        }, status=status.HTTP_200_OK)
+
+class UnfollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        target = get_object_or_404(User, pk=user_id)
+        request.user.following.remove(target)  
+        return Response({
+            "status": "unfollowed",
+            "target_user_id": target.id,
+            "followers_count": target.followers.count(),
+            "following_count": request.user.following.count(),
+        }, status=status.HTTP_200_OK)

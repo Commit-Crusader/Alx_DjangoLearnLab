@@ -171,3 +171,29 @@ class CommentViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(recent_comments, many=True)
         return Response(serializer.data)
+    
+    
+    @action(detail=False, methods=['get'])
+    def feed(self, request):
+        """
+        Custom action: Get a feed of posts from users the current user follows
+        URL: GET /posts/feed/
+        """
+        if not request.user.is_authenticated:
+            return Response({'error': 'Authentication required'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+        # Get users the current user follows
+        following_users = request.user.following.all()
+
+        # Get posts from those users, newest first
+        posts = self.queryset.filter(author__in=following_users).order_by('-created_at')
+
+        # Apply pagination if needed
+        page = self.paginate_queryset(posts)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(posts, many=True)
+        return Response(serializer.data)
