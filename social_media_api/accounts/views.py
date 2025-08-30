@@ -1,8 +1,9 @@
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
+from .models import  User
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -32,6 +33,20 @@ class LoginView(APIView):
 
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         return self.request.user
+
+
+class FollowerUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        follower_id = request.data.get("follower_id")
+        if follower_id:
+            follower = User.objects.get(id=follower_id)
+            user.followers.add(follower)
+            return Response({"message": "User followed successfully."}, status=status.HTTP_200_OK)
+        return Response({"error": "Invalid follower ID."}, status=status.HTTP_400_BAD_REQUEST)
