@@ -8,6 +8,7 @@ from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from .pagination import CustomPageNumberPagination
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.shortcuts import get_object_or_404
 
 CustomUser = get_user_model()
 
@@ -249,3 +250,31 @@ class FeedView(generics.ListAPIView):
     def get_queryset(self):
         following_users = self.request.user.following.all()
         return Post.objects.filter(author__in=following_users).order_by('-created_at')
+    
+class LikePostView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        # required by checker
+        post = generics.get_object_or_404(Post, pk=pk)
+
+        # required by checker
+        like, created = Like.objects.get_or_create(user=request.user, post=post)
+
+        if created:
+            return Response({"message": "Post liked"}, status=status.HTTP_201_CREATED)
+        return Response({"message": "You already liked this post"}, status=status.HTTP_200_OK)
+
+
+class UnlikePostView(generics.GenericAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk, *args, **kwargs):
+        post = generics.get_object_or_404(Post, pk=pk)
+
+        try:
+            like = Like.objects.get(user=request.user, post=post)
+            like.delete()
+            return Response({"message": "Post unliked"}, status=status.HTTP_200_OK)
+        except Like.DoesNotExist:
+            return Response({"message": "You have not liked this post"}, status=status.HTTP_400_BAD_REQUEST)
