@@ -5,6 +5,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer, LoginSerializer, UserSerializer
 from .models import  User
+from django.shortcuts import get_object_or_404
+from django.contrib.auth import get_user_model
+
+CustomUser = get_user_model()
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -40,30 +44,34 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
-class FollowUserView(APIView):
-    permission_classes = [IsAuthenticated]
+class FollowUserView(generics.GenericAPIView):
+    """
+    API endpoint to follow another user
+    """
+    queryset = CustomUser.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, user_id):
-        if request.user.id == user_id:
-            return Response({"detail": "You cannot follow yourself."}, status=400)
-        target = get_object_or_404(User, pk=user_id)
-        request.user.following.add(target)  
-        return Response({
-            "status": "followed",
-            "target_user_id": target.id,
-            "followers_count": target.followers_count,
-            "following_count": request.user.following_count,
-        }, status=status.HTTP_200_OK)
+        target_user = get_object_or_404(CustomUser, id=user_id)
 
-class UnfollowUserView(APIView):
-    permission_classes = [IsAuthenticated]
+        if request.user == target_user:
+            return Response({"error": "You cannot follow yourself."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        request.user.following.add(target_user)
+        return Response({"message": f"You are now following {target_user.username}"},
+                        status=status.HTTP_200_OK)
+
+
+class UnfollowUserView(generics.GenericAPIView):
+    """
+    API endpoint to unfollow another user
+    """
+    queryset = CustomUser.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, user_id):
-        target = get_object_or_404(User, pk=user_id)
-        request.user.following.remove(target)  
-        return Response({
-            "status": "unfollowed",
-            "target_user_id": target.id,
-            "followers_count": target.followers.count(),
-            "following_count": request.user.following.count(),
-        }, status=status.HTTP_200_OK)
+        target_user = get_object_or_404(CustomUser, id=user_id)
+        request.user.following.remove(target_user)
+        return Response({"message": f"You unfollowed {target_user.username}"},
+                        status=status.HTTP_200_OK)
