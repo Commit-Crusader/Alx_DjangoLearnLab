@@ -22,4 +22,5 @@ urlpatterns = [
     path('home/', include('posts.urls')),  # Include URLs from the posts app
     path('', include('accounts.urls')),  # Include URLs from the accounts app
     path('api/', include('posts.urls')),  # Include URLs from the posts app
+    path('notifications/', include('notifications.urls')),  # Include URLs from the notifications app
 ]

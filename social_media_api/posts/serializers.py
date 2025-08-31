@@ -1,6 +1,6 @@
 # posts/serializers.py
 from rest_framework import serializers
-from .models import Post, Comment
+from .models import Post, Comment, Like
 from django.contrib.auth import get_user_model
 
 User = get_user_model()  # Gets your custom user model
@@ -48,3 +48,9 @@ class PostSerializer(serializers.ModelSerializer):
         """Set the author to current user when creating"""
         validated_data['author'] = self.context['request'].user
         return super().create(validated_data)
+    
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ['id', 'user', 'post', 'created_at']
+        read_only_fields = ['user', 'created_at']
